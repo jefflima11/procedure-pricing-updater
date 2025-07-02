@@ -3,3 +3,6 @@ __pycache__/
 *.pyc
 /src/data
 __init___.py
+/build
+/dist
+main.spec

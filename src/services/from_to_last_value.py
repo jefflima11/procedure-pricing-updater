@@ -5,6 +5,7 @@ import oracledb
 def dataframe_export():
   connect = get_connection()
   cursor = connect.cursor()
+  df = pd.DataFrame()
 
   sql = """
       SELECT
@@ -47,4 +48,3 @@ def dataframe_export():
   df = pd.DataFrame(rows, columns=columns)
   return df
 
-  

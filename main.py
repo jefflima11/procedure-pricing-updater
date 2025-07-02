@@ -7,8 +7,6 @@ import oracledb
 import sys
 import os
 
-# print()
-
 contador = 0
 
 while contador == 0:
