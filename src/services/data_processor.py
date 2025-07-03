@@ -18,15 +18,15 @@ def verifica_insercao():
     else:
         verificado = 1
 
-    return verificado
     cursor.close()
     connect.close()
+    return verificado
 
 # print(verifica_insercao())
 def realizar_insert():
 
     if verifica_insercao() == 0:
-        df = pd.read_excel('./src/resources/in/tab_med_maio.xlsx')
+        df = pd.read_excel('./src/resources/in/tab_med.xlsx')
         df0 = df.rename(columns={'Cod TISS Brasindice': 'tiss', 'Preço Máximo Intercâmbio Nacional': 'valor'})
         df0 = df0[['tiss','valor']]
 
