@@ -15,5 +15,3 @@ dsn = os.getenv("DB_STRING")
 
 def get_connection():
     return oracledb.connect(user=user, password=pw, dsn=dsn)
-
-print(get_connection())
