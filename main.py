@@ -2,8 +2,6 @@ from src.db.connection import get_connection
 from src.services.data_processor import realizar_insert
 from src.services.from_to_last_value import dataframe_export
 from src.services.update import execute_update
-import pandas as pd
-import oracledb
 import sys
 import os
 
