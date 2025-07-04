@@ -6,3 +6,4 @@ __init___.py
 /build
 /dist
 main.spec
+/src/resources/in
