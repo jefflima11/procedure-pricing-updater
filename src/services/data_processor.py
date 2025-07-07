@@ -92,10 +92,9 @@ def med():
             idx = int(chosenWorksheet) - 1
             if idx < 0 or idx >= len(spreadsheets):
                 raise IndexError  
-            print('')
+            # print('')
         except:
             loadSpreadsheetOptions()
-        # exit()
         return idx
     
     idx = loadSpreadsheetOptions()    
@@ -103,15 +102,39 @@ def med():
     chosenFile = spreadsheets[idx]
     print(f"\nCarregando: {chosenFile}")
     
+    # Leitura do arquivo excel
     df = pd.read_excel(chosenFile, sheet_name="Plan1")
+
+    # Renomeia as tabelas principais a serem usadas na atualização de valores
     df0 = df.rename(columns={'Cod TISS Brasindice': 'tiss', 'Preço Máximo Intercâmbio Nacional': 'valor'})
+
+    # Isola as colunas desejadas
     df0 = df0[['tiss','valor']]
 
+    # Substitui todas as virgulas por pontos e altera o tipo da coluna "valor" para float
     df0['valor'] = df0['valor'].astype(str).str.strip().str.replace(',','.', regex=False).astype(float)
+    
+    # Altera o tipo "tiss" para string
     df0['tiss'] = df0['tiss'].astype(str)
 
-    # Dataframe de valores zerados
-    df_zero_values = df0.loc[df0['valor'] == 0.0000, ['tiss','valor']]
+    # Isola o Dataframe de valores zerados
+    dfZeroValues = df0.loc[df0['valor'] == 0.0000, ['tiss','valor']]
+
+    def opcaoDeValoresZerados():
+        os.system('cls')
+        print("\nVisualizar valores zerados?")
+        print("1 - Sim.")
+        print("2 - Não.")
+
+        options = msvcrt.getch().decode()
+        if options == '1':
+            dataFrameZeroValues(dfZeroValues)
+            
+        elif options == '2':
+            os.system('cls')
+        else:
+            opcaoDeValoresZerados()
+    opcaoDeValoresZerados()
 
     # Dataframe de valore não zerados e que possuem código brasindice
     dfFilter = df0.loc[(df0['valor'] != 0) & (df0['tiss'] != 'NAO POSSUI BRASINDICE'), ['tiss', 'valor']]
@@ -208,3 +231,6 @@ def insertFromTo(dfFilter):
         con.close()
 
         print("Tratamento de dados e inserção realizada na tabela de De-Para!")
+
+def dataFrameZeroValues(dfZeroValues):
+    dfZeroValues.to_excel("./src/resources/out/procedimentos zerados.xlsx")

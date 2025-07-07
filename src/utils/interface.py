@@ -1,5 +1,5 @@
 from src.db.connection import get_connection, user
-from src.services.data_processor import confirmInsert
+from src.services.data_processor import confirmInsert, dataFrameZeroValues
 from src.services.from_to_last_value import dataframe_export, dataframe_view
 from src.services.update import execute_update
 import sys
@@ -14,7 +14,8 @@ def menu_inicial():
             print('\nSelecionar função: \n')
             print('1 - Tratamento de planilha e insercao na tabela de-para.')
             print('2 - Exibir De-Para de valores externos com internos.')
-            print('3 - Update de valores internos.\n')
+            print('3 - Update de valores internos.')
+            print('4 - Valores zerados.\n')
             print('0 - Fechar sistema\n')
 
             print('pressione a tecla da opção desejada: ')
@@ -31,6 +32,10 @@ def menu_inicial():
             elif selectOptions == '3': 
                 os.system('cls')
                 execute_update()
+            
+            elif selectOptions == '4': 
+                os.system('cls')
+                dataFrameZeroValues()
 
             elif selectOptions == '0':
                 os.system('cls')
