@@ -1,4 +1,4 @@
-from src.utils.interface import confirmar_retorno_menu, menu_inicial
+from src.utils.interface import menu_inicial
 import os
 import msvcrt
 

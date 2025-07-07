@@ -1,6 +1,6 @@
 from src.db.connection import get_connection
 from src.services.data_processor import realizar_insert
-from src.services.from_to_last_value import dataframe_export
+from src.services.from_to_last_value import dataframe_export, dataframe_view
 from src.services.update import execute_update
 import sys
 import os
@@ -21,18 +21,14 @@ def menu_inicial():
             if selectOptions == '1':
                 os.system('cls')
                 realizar_insert()
-                confirmar_retorno_menu()
                 
             elif selectOptions == '2':
                 os.system('cls')
-                print_df = dataframe_export()
-                print(print_df)
-                confirmar_retorno_menu()
+                dataframe_view(dataframe_export())
 
             elif selectOptions == '3': 
                 os.system('cls')
                 execute_update()
-                confirmar_retorno_menu()
 
             elif selectOptions == '0':
                 os.system('cls')
@@ -43,7 +39,7 @@ def menu_inicial():
                 msvcrt.getch()
         
 
-def confirmar_retorno_menu():
+# def confirmar_retorno_menu():
 
     contador_i = 0
     while contador_i == 0:

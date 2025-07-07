@@ -43,25 +43,36 @@ def realizar_insert(df_filter=None):
         elif tecla == '0':
             sys.exit()
     else:
-        print('Já existe atualização para vigencia atual\n')
-        clean_de_para = input('Deseja limpar a tabela de de-para? ')
+        def verifica_limpeza_de_para(msg=None):
+            print('Já existe atualização para vigencia atual!\n')
+            print('Deseja limpar a tabela de de-para?\n')
+            print('1 - Sim.')
+            print('2 - Não, retornar ao menu.\n')
 
-        if clean_de_para == 's':
-            print()
-            
+            clean_de_para = msvcrt.getch().decode()
+            if clean_de_para == '1':
+                
+                clean_sql = """
+                    DELETE FROM DBAHUMS.DE_PARA_HUMS WHERE DT_VIGENCIA = TO_DATE(SYSDATE,'DD/MM/YY')
+                """
+                connect = get_connection()
+                cursor = connect.cursor()
+                cursor.execute(clean_sql)
+                connect.commit()
+                cursor.close()
+                connect.close()
 
-            clean_sql = """
-                DELETE FROM DBAHUMS.DE_PARA_HUMS WHERE DT_VIGENCIA = TO_DATE(SYSDATE,'DD/MM/YY')
-            """
-            connect = get_connection()
-            cursor = connect.cursor()
-            cursor.execute(clean_sql)
-            connect.commit()
-            cursor.close()
-            connect.close()
+                os.system('cls')
+                print('Limpeza de de-para realizada!')
+            elif clean_de_para == '2':
+                os.system('cls')
+                # print(msg)
+            else:
+                os.system('cls')
+                print('Opção inválida. Tente novamente!')
+                verifica_limpeza_de_para()
 
-            os.system('cls')
-            print('Limpeza de de-para realizada!')
+        verifica_limpeza_de_para()
 
     verifica_insercao()
 

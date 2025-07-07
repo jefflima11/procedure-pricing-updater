@@ -1,6 +1,7 @@
 from src.db.connection import get_connection
 from src.services.from_to_last_value import dataframe_export
 import os
+import msvcrt
 
 def verifica_update():
   verifica_update_sql = """
@@ -25,23 +26,33 @@ def execute_update():
     print('Não existe atualização na tabela DBAHUMS.DE_PARA_HUMS')
   else:
     if verifica_update() == 0:
-      print('Valores de procedimentos já existentes com vigencia atual!\n')
-      clean_update = input('Deseja limpar os valores com a vigencia atual? ')
+      def clean_options():
+        print('Valores de procedimentos já existentes com vigencia atual!\n')
+        print('Deseja limpar os valores com a vigencia atual?\n')
+        print('1 - Sim.')
+        print('2 - Não, retornar ao menu.')
 
-      if clean_update == 's':
-        clean_update_sql = """
-          DELETE FROM DBAMV.VAL_PRO WHERE DT_VIGENCIA = TO_DATE(SYSDATE,'DD/MM/YY')
-        """
+        clean_update = msvcrt.getch().decode()
+        if clean_update == '1':
+          clean_update_sql = """
+            DELETE FROM DBAMV.VAL_PRO WHERE DT_VIGENCIA = TO_DATE(SYSDATE,'DD/MM/YY')
+          """
 
-        connect = get_connection()
-        cursor = connect.cursor()
-        cursor.execute(clean_update_sql)
-        connect.commit()
-        cursor.close()
-        connect.close()
+          connect = get_connection()
+          cursor = connect.cursor()
+          cursor.execute(clean_update_sql)
+          connect.commit()
+          cursor.close()
+          connect.close()
 
-        os.system('cls')
-        print('\nLimpeza de valores realizada!')
+          os.system('cls')
+          print('\nLimpeza de valores realizada!')
+        elif clean_update == '2':
+          os.system('cls')
+        else:
+          os.system('cls')
+          clean_options()
+      clean_options()  
     else:
       df = dataframe_export()
       df_new_value = df.copy()
