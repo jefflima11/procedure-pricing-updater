@@ -1,14 +1,16 @@
-from src.db.connection import get_connection
-from src.services.data_processor import realizar_insert
+from src.db.connection import get_connection, user
+from src.services.data_processor import confirmInsert
 from src.services.from_to_last_value import dataframe_export, dataframe_view
 from src.services.update import execute_update
 import sys
 import os
 import msvcrt
 
+
 def menu_inicial():
     if get_connection():
         while True:
+            print('Usuario: ', user)
             print('\nSelecionar função: \n')
             print('1 - Tratamento de planilha e insercao na tabela de-para.')
             print('2 - Exibir De-Para de valores externos com internos.')
@@ -20,7 +22,7 @@ def menu_inicial():
 
             if selectOptions == '1':
                 os.system('cls')
-                realizar_insert()
+                confirmInsert()
                 
             elif selectOptions == '2':
                 os.system('cls')
@@ -41,23 +43,23 @@ def menu_inicial():
 
 # def confirmar_retorno_menu():
 
-    contador_i = 0
-    while contador_i == 0:
+    # contador_i = 0
+    # while contador_i == 0:
 
-        print('\nRetornar ao menu?\n')
-        print('1 - (sim)')
-        print('2 - (não)\n')
+    #     print('\nRetornar ao menu?\n')
+    #     print('1 - (sim)')
+    #     print('2 - (não)\n')
 
-        print('pressione a tecla da opção desejada: ')
-        tecla = msvcrt.getch()
-        return_i = tecla.decode()
+    #     print('pressione a tecla da opção desejada: ')
+    #     tecla = msvcrt.getch()
+    #     return_i = tecla.decode()
 
-        if return_i == '1':
-            contador_i = 1
-            os.system('cls')
-        elif return_i == '2':
-            os.system('cls')
-            contador_i = 0
-        else:
-            os.system('cls')
-            print('\nOpção invalida!')
+    #     if return_i == '1':
+    #         contador_i = 1
+    #         os.system('cls')
+    #     elif return_i == '2':
+    #         os.system('cls')
+    #         contador_i = 0
+    #     else:
+    #         os.system('cls')
+    #         print('\nOpção invalida!')

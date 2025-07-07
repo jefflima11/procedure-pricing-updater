@@ -1,16 +1,14 @@
 from src.db.connection import get_connection
 from src.services.from_to_last_value import dataframe_export
+from src.queries.update_queries import updateNewValuesSQL, checkUpdateSQL, cleanUpdateSQL
 import os
 import msvcrt
 
 def verifica_update():
-  verifica_update_sql = """
-    SELECT DISTINCT 0 FROM DBAMV.VAL_PRO WHERE DT_VIGENCIA = TO_DATE(SYSDATE,'DD/MM/YY')
-  """
 
   connect = get_connection()
   cursor = connect.cursor()
-  cursor.execute(verifica_update_sql)
+  cursor.execute(checkUpdateSQL)
   result = cursor.fetchall()
   
   if result:
@@ -34,13 +32,9 @@ def execute_update():
 
         clean_update = msvcrt.getch().decode()
         if clean_update == '1':
-          clean_update_sql = """
-            DELETE FROM DBAMV.VAL_PRO WHERE DT_VIGENCIA = TO_DATE(SYSDATE,'DD/MM/YY')
-          """
-
           connect = get_connection()
           cursor = connect.cursor()
-          cursor.execute(clean_update_sql)
+          cursor.execute(cleanUpdateSQL)
           connect.commit()
           cursor.close()
           connect.close()
@@ -59,32 +53,11 @@ def execute_update():
 
       df_new_value = df_new_value[['CD_PRO_FAT', 'NEW_VALUE']]
       dados = df_new_value.to_dict(orient='records')
-
-      sql_insert_new_values = """
-        INSERT INTO DBAMV.VAL_PRO(
-          CD_TAB_FAT,
-          CD_PRO_FAT,
-          DT_VIGENCIA,
-          VL_HONORARIO,
-          VL_OPERACIONAL,
-          VL_TOTAL,
-          SN_ATIVO,
-          NM_USUARIO
-        ) VALUES (
-          1,
-          :CD_PRO_FAT,
-          TO_DATE(SYSDATE,'DD/MM/YY'),
-          0,
-          0,
-          :NEW_VALUE,
-          'S',
-          USER
-        )
-      """
+ 
       connect = get_connection()
       cursor = connect.cursor()
 
-      cursor.executemany(sql_insert_new_values, dados)
+      cursor.executemany(updateNewValuesSQL, dados)
       connect.commit()
 
       cursor.close()
