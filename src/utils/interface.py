@@ -1,6 +1,7 @@
 from src.db.connection import get_connection, user
-from src.services.data_processor import confirmInsert, dataFrameZeroValues
+from src.services.data_processor import confirmInsert
 from src.services.from_to_last_value import dataframe_export, dataframe_view
+from src.services.handle_zero_values import handleZeroValues
 from src.services.update import execute_update
 import sys
 import os
@@ -35,7 +36,7 @@ def menu_inicial():
             
             elif selectOptions == '4': 
                 os.system('cls')
-                dataFrameZeroValues()
+                handleZeroValues()
 
             elif selectOptions == '0':
                 os.system('cls')

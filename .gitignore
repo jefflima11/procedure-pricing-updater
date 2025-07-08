@@ -7,3 +7,4 @@ __init___.py
 /dist
 main.spec
 /src/resources/in
+/src/resources/out

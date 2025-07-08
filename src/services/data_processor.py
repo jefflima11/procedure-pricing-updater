@@ -1,10 +1,14 @@
 from src.db.connection import get_connection
 from src.queries.data_processor_queries import cleanFromToSQL, checkExistsFromToSQL, insertFromToSQL
-import glob
+from src.utils.spreadsheet_data_processing import importSpreadsheet
+from src.utils.checks_for_unconfigured_procedures import checksForUnconfiguredProcedures, exportForUnconfiguredProcedures
+from src.utils.handling_of_zero_values import handlingOfZeroValues
+from src.utils.options import confirmChosenOption
 import pandas as pd
 import os
 import msvcrt
 import sys
+import oracledb
 
 def confirmInsert():
 
@@ -63,174 +67,63 @@ def chooseSpreadsheetType():
 
         worksheetTypeOptions = msvcrt.getch().decode()
         if worksheetTypeOptions == '1':
-            med()
+            medicationsProcedures(makeSpreadsheet())
         elif worksheetTypeOptions =='2':
-            print('tab')
+            materialsProcedures(makeSpreadsheet())
         else:
             chooseSpreadsheetType()
 
-def med():
-    inputDir = os.path.join("src", "resources", "in")
+def makeSpreadsheet():
+    df = importSpreadsheet()
+    return df
 
-    spreadsheets = glob.glob(os.path.join(inputDir, "*.xlsx"))
-
-    if not spreadsheets:
-        print("Nenhuma planilha encontrada.")
-        exit()
-    
-    def loadSpreadsheetOptions():
-        os.system('cls')
-        print("Selecione a planilha para carregar:\n")
-        for i, spreadsheet in enumerate(spreadsheets):
-            nome = os.path.basename(spreadsheet)
-            print(f"{i+1} - {nome}")
-        
-
-        chosenWorksheet = msvcrt.getch().decode()
-
-        try:
-            idx = int(chosenWorksheet) - 1
-            if idx < 0 or idx >= len(spreadsheets):
-                raise IndexError  
-            # print('')
-        except:
-            loadSpreadsheetOptions()
-        return idx
-    
-    idx = loadSpreadsheetOptions()    
-
-    chosenFile = spreadsheets[idx]
-    print(f"\nCarregando: {chosenFile}")
-    
-    # Leitura do arquivo excel
-    df = pd.read_excel(chosenFile, sheet_name="Plan1")
+def medicationsProcedures(df):
 
     # Renomeia as tabelas principais a serem usadas na atualização de valores
-    df0 = df.rename(columns={'Cod TISS Brasindice': 'tiss', 'Preço Máximo Intercâmbio Nacional': 'valor'})
-
-    # Isola as colunas desejadas
-    df0 = df0[['tiss','valor']]
+    df0 = df.rename(columns={'Cod TISS Brasindice': 'tiss', 'Preço Máximo Intercâmbio Nacional': 'valor', 'Nome e Apresentação Comercial': 'descricao', 'Código': 'codigo_brasindice'})
 
     # Substitui todas as virgulas por pontos e altera o tipo da coluna "valor" para float
     df0['valor'] = df0['valor'].astype(str).str.strip().str.replace(',','.', regex=False).astype(float)
     
+    # Executa exportação de procedimentos não configurados
+    newDf = df0[['tiss','codigo_brasindice', 'valor','descricao']]
+
+    # Isola as colunas desejadas
+    df0 = df0[['tiss','valor']]
+
     # Altera o tipo "tiss" para string
     df0['tiss'] = df0['tiss'].astype(str)
 
-    # Isola o Dataframe de valores zerados
-    dfZeroValues = df0.loc[df0['valor'] == 0.0000, ['tiss','valor']]
+    # Trata os procedimentos de valores zerados
+    handlingOfZeroValues(newDf)
 
-    def opcaoDeValoresZerados():
-        os.system('cls')
-        print("\nVisualizar valores zerados?")
-        print("1 - Sim.")
-        print("2 - Não.")
-
-        options = msvcrt.getch().decode()
-        if options == '1':
-            dataFrameZeroValues(dfZeroValues)
-            
-        elif options == '2':
-            os.system('cls')
-        else:
-            opcaoDeValoresZerados()
-    opcaoDeValoresZerados()
+    # trata os procedimentos não configurados na tela M_BRASINDI
+    checksForUnconfiguredProcedures(newDf)
 
     # Dataframe de valore não zerados e que possuem código brasindice
     dfFilter = df0.loc[(df0['valor'] != 0) & (df0['tiss'] != 'NAO POSSUI BRASINDICE'), ['tiss', 'valor']]
     dfFilter['vl_honorario'] = 0
     dfFilter['vl_operacional'] = 0
-
-    def confirmChosenOption():
-        os.system('cls')
-        print('Amostra de valores tratados:\n')
-        print(dfFilter.head())
-
-        print('\nConfirmar inserção de valores de-para?')           
-        print('1 - Sim')
-        print('2 - Não, retornar ao menu.\n')
-
-        insertOption = msvcrt.getch().decode()
-        if insertOption == '1':
-            os.system('cls')
-            insertFromTo(dfFilter)
-        elif insertOption == '2':
-            os.system('cls')
-        else:
-            confirmChosenOption()
-    confirmChosenOption()
-
-def mat():
-    print()
-    # inputDir = os.path.join("src", "resources", "in")
-
-    # spreadsheets = glob.glob(os.path.join(inputDir, "*.xlsx"))
-
-    # if not spreadsheets:
-    #     print("Nenhuma spreadsheet encontrada.")
-    #     exit()
     
-    # print("Selecione a spreadsheet para carregar:\n")
-    # for i, spreadsheet in enumerate(spreadsheets):
-    #     nome = os.path.basename(spreadsheet)
-    #     print(f"{i+1} - {nome}")
+    confirmChosenOption(dfFilter)
 
-    # chosenWorksheet = msvcrt.getch().decode()
-
-    # try:
-    #     idx = int(chosenWorksheet) - 1
-    #     if idx < 0 or idx >= len(spreadsheets):
-    #         raise IndexError
-    # except:
-    #     print("Opção inválida.")
-    #     exit()
-    
-    # chosenFile = spreadsheets[idx]
-    # print(f"\nCarregando: {chosenFile}")
-    
-    # df = pd.read_excel(chosenFile, sheet_name="Plan1")
-    # df0 = df.rename(columns={'Cod TISS Brasindice': 'tiss', 'Preço Máximo Intercâmbio Nacional': 'valor'})
-    # df0 = df0[['tiss','valor']]
-
-    # df0['valor'] = df0['valor'].astype(str).str.strip().str.replace(',','.', regex=False).astype(float)
-    # df0['tiss'] = df0['tiss'].astype(str)
-
-    # # Dataframe de valores zerados
-    # df_zero_values = df0.loc[df0['valor'] == 0.0000, ['tiss','valor']]
-
-    # # Dataframe de valore não zerados e que possuem código brasindice
-    # dfFilter = df0.loc[(df0['valor'] != 0) & (df0['tiss'] != 'NAO POSSUI BRASINDICE'), ['tiss', 'valor']]
-    # dfFilter['vl_honorario'] = 0
-    # dfFilter['vl_operacional'] = 0
-
-    # os.system('cls')
-    # print('Amostra de valores tratados:\n')
-    # print(dfFilter.head())
-
-    # print('\nConfirmar inserção de valores de-para?')           
-    # print('1 - Sim')
-    # print('2 - Não\n')
-    # print('Pressione a tecla da opção desejada:')
-    # insertOption = msvcrt.getch().decode()
-    # if insertOption == '1':
-    #     inserir_de_para(dfFilter)
-    # elif insertOption == '2':
-    #     os.system('cls')
-    #     print('')
+def materialsProcedures(df):
+    print() 
 
 def insertFromTo(dfFilter):
-        data = dfFilter.to_dict(orient='records')
+    data = dfFilter.to_dict(orient='records')
 
-        con = get_connection()
-        cur = con.cursor()
+    con = get_connection()
+    cur = con.cursor()
 
-        cur.executemany(insertFromToSQL, data)
-        con.commit()
+    cur.executemany(insertFromToSQL, data)
+    con.commit()
 
-        cur.close()
-        con.close()
+    cur.close()
+    con.close()
 
-        print("Tratamento de dados e inserção realizada na tabela de De-Para!")
+    exportForUnconfiguredProcedures()
 
-def dataFrameZeroValues(dfZeroValues):
-    dfZeroValues.to_excel("./src/resources/out/procedimentos zerados.xlsx")
+    print("* Tratamento de dados e inserção realizada na tabela de De-Para! *")
+    print("* Relatório de inconsistencias gerado!* \n")
+

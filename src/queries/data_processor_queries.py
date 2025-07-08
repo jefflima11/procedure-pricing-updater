@@ -25,3 +25,14 @@ insertFromToSQL = """
         user
     )
 """
+
+unregisteredProcedures = """
+    SELECT DISTINCT
+        DP.CD_TISS,
+        IB.CD_PRO_FAT
+    FROM
+        DBAHUMS.DE_PARA_HUMS DP
+        LEFT JOIN DBAMV.IMP_BRA IB ON DP.CD_TISS = IB.CD_TISS
+    WHERE IB.CD_TISS IS NULL
+
+"""
