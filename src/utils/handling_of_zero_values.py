@@ -1,10 +1,13 @@
+import datetime
 
 def handlingOfZeroValues(df):
     
     # Isola o Dataframe de valores zerados
-    dfZeroValues = df.loc[df['valor'] == 0.0000, ['tiss', 'codigo_brasindice','valor', 'descricao']]
+    dfZeroValues = df.loc[(df['valor'] == 0.0000) & (df['tiss'] != 'NAO POSSUI BRASINDICE'), ['tiss', 'codigo_brasindice','valor', 'descricao']]
     
     dataFrameZeroValues(dfZeroValues)
 
 def dataFrameZeroValues(dfZeroValues):
-    dfZeroValues.to_excel("./src/resources/out/dados divergentes maio.xlsx", sheet_name='Proced_zerados', index=False)
+    now = datetime.datetime.now()
+    now_formated = now.strftime("%d%m%Y")
+    dfZeroValues.to_excel(f"./src/resources/out/pendencias-{now_formated}.xlsx", sheet_name='Proced_zerados', index=False)

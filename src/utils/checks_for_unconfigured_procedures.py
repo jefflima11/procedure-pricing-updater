@@ -3,6 +3,7 @@ from src.queries.checks_for_unconfigured_procedures_queries import insertProcedu
 import pandas as pd
 from openpyxl import load_workbook
 import oracledb
+import datetime
 
 def checksForUnconfiguredProcedures(df):
     
@@ -22,16 +23,16 @@ def checksForUnconfiguredProcedures(df):
     finally:
         cur.close()
         con.close()
-        print('sessao com banco encerrada!')
-
-    
 
 def exportForUnconfiguredProcedures():
-    path = './src/resources/out/dados divergentes maio.xlsx'
+    now = datetime.datetime.now()
+    now_formated = now.strftime("%d%m%Y")
+    path = f'./src/resources/out/pendencias-{now_formated}.xlsx'
     
     # Carrega o arquivo existente
     book = load_workbook(path)
 
+    # Verifica em consulta os procedimentos que não tem condiguração na M_BRASIND
     try:
         con = get_connection()
         cur = con.cursor()
@@ -45,24 +46,21 @@ def exportForUnconfiguredProcedures():
     finally:
         cur.close()
         con.close()
-        print('sessao com banco encerrada')
 
-    # Adiciona nova aba sem sobrescrever as existentes
+    # Adiciona nova aba na planilha de pendencias sem sobrescrever as existentes
     with pd.ExcelWriter(path, engine='openpyxl', mode='a') as writer:
         df.to_excel(writer, sheet_name="Proced_nao_config", index=False)
     
+    # Limpa a tabela de log de procedimentos
     try:
         con = get_connection()
         cur = con.cursor()
         cur.execute(deleteProceduresInLogSQL)
-        print('exclusão realizada')
         con.commit()
     except oracledb.Error as e:
-        print('Erro ao realizar limpeza da tabela LOG_PROC_NAO_CONFIG_HUMS')
+        print('Erro ao realizar limpeza da tabela LOG_PROC_NAO_CONFIG_HUMS:')
         print(e)
     finally:
         cur.close()
         con.close()
-        print('sessao com banco encerrada')
     
-    exit()

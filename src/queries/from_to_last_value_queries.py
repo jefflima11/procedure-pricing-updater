@@ -33,9 +33,10 @@ diferencaDeValoresSQL = """
     SELECT
         DP.CD_TISS,
         IB.CD_PRO_FAT,
-        DP.VL_TOTAL NEW_VALUE,
+        VP_ULT.VL_TOTAL OLD_VALUE,
         VP_ULT.DT_VIGENCIA OLD_DATE,
-        VP_ULT.VL_TOTAL OLD_VALUE
+        DP.VL_TOTAL NEW_VALUE
+        
     FROM
         DBAHUMS.DE_PARA_HUMS DP
         INNER JOIN DBAMV.IMP_BRA IB ON DP.CD_TISS = IB.CD_TISS

@@ -1,65 +1,51 @@
 from src.db.connection import get_connection
-from src.services.from_to_last_value import dataframe_export
+from src.services.from_to_last_value import updatedProcedures
 from src.queries.update_queries import updateNewValuesSQL, checkUpdateSQL, cleanUpdateSQL
+from src.utils.options import cleanOptions
 import os
 import msvcrt
+import oracledb
 
-def verifica_update():
+def verificaUpdate():
+  try:
+    con = get_connection()
+    cur = con.cursor()
+    cur.execute(checkUpdateSQL)
+    r = cur.fetchall()
+    if r:
+      verif = 0
+    else:
+      verif = 1
+  except oracledb.Error as e:
+    print(e)
+  finally:
+    cur.close()
+    con.close()
+    
+  return verif
 
-  connect = get_connection()
-  cursor = connect.cursor()
-  cursor.execute(checkUpdateSQL)
-  result = cursor.fetchall()
-  
-  if result:
-    verificador = 0
-  else:
-    verificador = 1
-
-  return verificador
-
-def execute_update():
+def executeUpdate():
   # Verifica se a tabela de de-para esta vazia
-  if dataframe_export().empty:
+  if updatedProcedures().empty:
     print('Não existe atualização na tabela DBAHUMS.DE_PARA_HUMS')
   else:
-    if verifica_update() == 0:
-      def clean_options():
-        print('Valores de procedimentos já existentes com vigencia atual!\n')
-        print('Deseja limpar os valores com a vigencia atual?\n')
-        print('1 - Sim.')
-        print('2 - Não, retornar ao menu.')
-
-        clean_update = msvcrt.getch().decode()
-        if clean_update == '1':
-          connect = get_connection()
-          cursor = connect.cursor()
-          cursor.execute(cleanUpdateSQL)
-          connect.commit()
-          cursor.close()
-          connect.close()
-
-          os.system('cls')
-          print('\nLimpeza de valores realizada!')
-        elif clean_update == '2':
-          os.system('cls')
-        else:
-          os.system('cls')
-          clean_options()
-      clean_options()  
+    if verificaUpdate() == 0:
+      cleanOptions()  
     else:
-      df = dataframe_export()
+      df = updatedProcedures()
       df_new_value = df.copy()
 
       df_new_value = df_new_value[['CD_PRO_FAT', 'NEW_VALUE']]
       dados = df_new_value.to_dict(orient='records')
- 
-      connect = get_connection()
-      cursor = connect.cursor()
 
-      cursor.executemany(updateNewValuesSQL, dados)
-      connect.commit()
-
-      cursor.close()
-      connect.close()    
+      try:
+        con = get_connection()
+        cur = con.cursor()
+        cur.executemany(updateNewValuesSQL, dados)
+        con.commit()
+      except oracledb.Error as e:
+        print(e)
+      finally:
+        cur.close()
+        con.close()    
       print('Valores de produtos atualizados!')

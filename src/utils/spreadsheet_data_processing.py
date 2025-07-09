@@ -2,6 +2,7 @@ import pandas as pd
 import os
 import msvcrt
 import glob
+import sys
 
 def importSpreadsheet():
     inputDir = os.path.join("src", "resources", "in")
@@ -10,7 +11,7 @@ def importSpreadsheet():
 
     if not spreadsheets:
         print("Nenhuma planilha encontrada.")
-        exit()
+        sys.exit()
     
     def loadSpreadsheetOptions():
         os.system('cls')

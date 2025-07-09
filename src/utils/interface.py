@@ -1,8 +1,6 @@
 from src.db.connection import get_connection, user
 from src.services.data_processor import confirmInsert
-from src.services.from_to_last_value import dataframe_export, dataframe_view
-from src.services.handle_zero_values import handleZeroValues
-from src.services.update import execute_update
+from src.services.update import executeUpdate
 import sys
 import os
 import msvcrt
@@ -14,9 +12,7 @@ def menu_inicial():
             print('Usuario: ', user)
             print('\nSelecionar função: \n')
             print('1 - Tratamento de planilha e insercao na tabela de-para.')
-            print('2 - Exibir De-Para de valores externos com internos.')
-            print('3 - Update de valores internos.')
-            print('4 - Valores zerados.\n')
+            print('2 - Update de valores internos.\n')
             print('0 - Fechar sistema\n')
 
             print('pressione a tecla da opção desejada: ')
@@ -28,15 +24,7 @@ def menu_inicial():
                 
             elif selectOptions == '2':
                 os.system('cls')
-                dataframe_view(dataframe_export())
-
-            elif selectOptions == '3': 
-                os.system('cls')
-                execute_update()
-            
-            elif selectOptions == '4': 
-                os.system('cls')
-                handleZeroValues()
+                executeUpdate()
 
             elif selectOptions == '0':
                 os.system('cls')
@@ -45,27 +33,3 @@ def menu_inicial():
             else:
                 print("Opção inválida. Tente novamente.")
                 msvcrt.getch()
-        
-
-# def confirmar_retorno_menu():
-
-    # contador_i = 0
-    # while contador_i == 0:
-
-    #     print('\nRetornar ao menu?\n')
-    #     print('1 - (sim)')
-    #     print('2 - (não)\n')
-
-    #     print('pressione a tecla da opção desejada: ')
-    #     tecla = msvcrt.getch()
-    #     return_i = tecla.decode()
-
-    #     if return_i == '1':
-    #         contador_i = 1
-    #         os.system('cls')
-    #     elif return_i == '2':
-    #         os.system('cls')
-    #         contador_i = 0
-    #     else:
-    #         os.system('cls')
-    #         print('\nOpção invalida!')
