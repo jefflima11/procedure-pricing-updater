@@ -26,6 +26,26 @@ insertFromToSQL = """
     )
 """
 
+insertFromToMatSQL = """
+    insert into dbahums.de_para_hums(
+        cd_tuss, 
+        dt_vigencia, 
+        vl_honorario,
+        vl_operacional,
+        vl_total,
+        sn_ativo,
+        nm_usuario)
+    values (
+        :tuss,
+        to_date(sysdate,'dd/mm/yy'),
+        :vl_honorario,
+        :vl_operacional,
+        :valor,
+        'S',
+        user
+    )
+"""
+
 unregisteredProcedures = """
     SELECT DISTINCT
         DP.CD_TISS,

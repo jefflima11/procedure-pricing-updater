@@ -1,5 +1,5 @@
 from src.db.connection import get_connection
-from src.queries.from_to_last_value_queries import fromToLastValueSQL
+from src.queries.from_to_last_value_queries import fromToLastValueSQL, fromToLastValueMatSQL
 import pandas as pd
 import msvcrt
 import os
@@ -11,7 +11,7 @@ def updatedProcedures():
   try:
     con = get_connection()
     cur = con.cursor()
-    cur.execute(fromToLastValueSQL)
+    cur.execute(fromToLastValueMatSQL)
     rows = cur.fetchall()
     columns = [col[0] for col in cur.description]
 
@@ -34,7 +34,7 @@ def exportUpdatedProcedures():
   now = datetime.datetime.now()
   now_formated = now.strftime('%d%m%Y')
 
-  path = f'./src/resources/out/pendencias-{now_formated}.xlsx'
+  path = f'./src/resources/out/relatório-materiais{now_formated}.xlsx'
 
   try:
     with pd.ExcelWriter(path, engine='openpyxl', mode='a') as writer:

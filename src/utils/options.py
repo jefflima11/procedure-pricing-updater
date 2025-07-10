@@ -32,11 +32,12 @@ def chooseSpreadsheetType():
     print('2 - Materiais\n')
 
     worksheetTypeOptions = msvcrt.getch().decode()
-    from src.services.data_processor import medicationsProcedures, makeSpreadsheet, materialsProcedures
+    from src.services.data_processor import medicationsProcedures, materialsProcedures
+    from src.utils.spreadsheet_data_processing import importSpreadsheet
     if worksheetTypeOptions == '1':
-        medicationsProcedures(makeSpreadsheet())
+        medicationsProcedures(importSpreadsheet())
     elif worksheetTypeOptions =='2':
-        materialsProcedures(makeSpreadsheet())
+        materialsProcedures(importSpreadsheet())
     else:
         chooseSpreadsheetType()
 

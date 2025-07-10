@@ -4,6 +4,7 @@ import msvcrt
 import glob
 import sys
 
+# Importacao das planilhas de atualizacao
 def importSpreadsheet():
     inputDir = os.path.join("src", "resources", "in")
 
@@ -29,6 +30,7 @@ def importSpreadsheet():
                 raise IndexError  
         except:
             loadSpreadsheetOptions()
+            
         return idx
     
     idx = loadSpreadsheetOptions()    
