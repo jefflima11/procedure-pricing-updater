@@ -2,6 +2,7 @@ from src.db.connection import get_connection
 from src.services.from_to_last_value import updatedProcedures
 from src.queries.update_queries import updateNewValuesSQL, checkUpdateSQL, cleanUpdateSQL
 from src.utils.options import cleanOptions
+from src.utils import messages
 import os
 import msvcrt
 import oracledb
@@ -25,19 +26,32 @@ def verificaUpdate():
   return verif
 
 def executeUpdate():
+  # Verifica o tipo de atualização
+  typeSpreadsheet = checkTheUpdateType()
   # Verifica se a tabela de de-para esta vazia
-  if updatedProcedures().empty:
-    print('Não existe atualização na tabela DBAHUMS.DE_PARA_HUMS')
+  if updatedProcedures(typeSpreadsheet).empty:
+    if typeSpreadsheet == 0:
+      print('Não existe importação da tabela Brasindice.')
+    elif typeSpreadsheet == 1:
+      print('Não existe importação da tabela Simpro.')
   else:
     if verificaUpdate() == 0:
       cleanOptions()  
     else:
-      df = updatedProcedures()
+      df = updatedProcedures(typeSpreadsheet)
       df_new_value = df.copy()
 
       df_new_value = df_new_value[['CD_PRO_FAT', 'NEW_VALUE']]
-      dados = df_new_value.to_dict(orient='records')
 
+      if typeSpreadsheet == 0:
+        df_new_value['CD_TAB_FAT'] = 1
+      elif typeSpreadsheet == 1:
+        df_new_value['CD_TAB_FAT'] = 50
+
+      
+      dados = df_new_value.to_dict(orient='records')
+      print(df_new_value)
+      exit()
       try:
         con = get_connection()
         cur = con.cursor()
@@ -49,3 +63,16 @@ def executeUpdate():
         cur.close()
         con.close()    
       print('Valores de produtos atualizados!')
+
+def checkTheUpdateType():
+  messages.checkTheUpdateType()
+  key = msvcrt.getch().decode()
+
+  if key == '1':
+    typeSpreadsheet = 0
+  elif key == '2':
+    typeSpreadsheet = 1
+  else:
+    return
+  
+  return typeSpreadsheet

@@ -1,4 +1,4 @@
-fromToLastValueSQL="""
+fromToLastValueMedSQL="""
     SELECT
         DP.CD_TISS,
         IB.CD_PRO_FAT,

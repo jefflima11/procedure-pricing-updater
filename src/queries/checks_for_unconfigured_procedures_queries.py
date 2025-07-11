@@ -8,7 +8,7 @@ cheksForUnconfiguredProceduresSQL = """"
     WHERE IB.CD_TISS IS NULL
 """
 
-proceduresUnconfiguredLogSQL = """
+proceduresUnconfiguredLogMedSQL = """
     SELECT DISTINCT
         TISS,
         CODIGO_BRASINDICE,
@@ -44,7 +44,7 @@ proceduresUnconfiguredLogMatSQL = """
                     ) F ON LP.TUSS = F.CD_TUSS
 """
 
-insertProceduresInLogSQL = """
+insertProceduresInLogMedSQL = """
     INSERT INTO DBAHUMS.LOG_PROC_NAO_CONFIG_HUMS(
         TISS,
         CODIGO_BRASINDICE,

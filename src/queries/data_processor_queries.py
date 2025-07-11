@@ -6,7 +6,7 @@ checkExistsFromToSQL = """
     SELECT DISTINCT 0 FROM DBAHUMS.DE_PARA_HUMS            
 """
 
-insertFromToSQL = """
+insertFromToMedSQL = """
     insert into dbahums.de_para_hums(
         cd_tiss, 
         dt_vigencia, 

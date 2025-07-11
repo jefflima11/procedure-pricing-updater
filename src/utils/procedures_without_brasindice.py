@@ -11,7 +11,7 @@ def proceduresWithoutBrasindice(df):
     now = datetime.datetime.now()
     now_formated = now.strftime('%d%m%Y')
 
-    path = f'./src/resources/out/pendencias-{now_formated}.xlsx'
+    path = f'./src/resources/out/relatório-medicamentos{now_formated}.xlsx'
 
     try:
         with pd.ExcelWriter(path, engine='openpyxl', mode='a') as writer:
