@@ -48,10 +48,7 @@ def executeUpdate():
       elif typeSpreadsheet == 1:
         df_new_value['CD_TAB_FAT'] = 50
 
-      
       dados = df_new_value.to_dict(orient='records')
-      print(df_new_value)
-      exit()
       try:
         con = get_connection()
         cur = con.cursor()
