@@ -6,5 +6,10 @@ __init___.py
 /build
 /dist
 main.spec
-/src/resources/in
-/src/resources/out
+/src/resources/in/
+/src/resources/out/
+/src/resources/log/
+
+!/src/resources/in/.gitkeep
+!/src/resources/out/.gitkeep
+!/src/resources/log/.gitkeep
