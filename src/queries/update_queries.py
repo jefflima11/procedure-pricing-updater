@@ -9,7 +9,7 @@ updateNewValuesSQL = """
         SN_ATIVO,
         NM_USUARIO
     ) VALUES (
-        1,
+        :CD_TAB_FAT,
         :CD_PRO_FAT,
         TO_DATE(SYSDATE,'DD/MM/YY'),
         0,

@@ -71,7 +71,7 @@ def checkCleanlinessFromTo(msg=None):
         print('Opção inválida. Tente novamente!')
         checkCleanlinessFromTo()            
 
-def cleanOptions():
+def UpdatedCleanOptions():
     print('Valores de procedimentos já existentes com vigencia atual!\n')
     print('Deseja limpar os valores com a vigencia atual?\n')
     print('1 - Sim.')
@@ -96,5 +96,5 @@ def cleanOptions():
         messages.terminalCleaning()
     else:
         messages.terminalCleaning()
-        cleanOptions()
+        UpdatedCleanOptions()
 

@@ -1,7 +1,7 @@
 from src.db.connection import get_connection
 from src.services.from_to_last_value import updatedProcedures
 from src.queries.update_queries import updateNewValuesSQL, checkUpdateSQL, cleanUpdateSQL
-from src.utils.options import cleanOptions
+from src.utils.options import UpdatedCleanOptions
 from src.utils import messages
 import os
 import msvcrt
@@ -31,12 +31,14 @@ def executeUpdate():
   # Verifica se a tabela de de-para esta vazia
   if updatedProcedures(typeSpreadsheet).empty:
     if typeSpreadsheet == 0:
-      print('Não existe importação da tabela Brasindice.')
+      msg = print('Não existe importação da tabela Brasindice.')
     elif typeSpreadsheet == 1:
-      print('Não existe importação da tabela Simpro.')
+      msg =print('Não existe importação da tabela Simpro.')
+    return msg
   else:
     if verificaUpdate() == 0:
-      cleanOptions()  
+      UpdatedCleanOptions()  
+      
     else:
       df = updatedProcedures(typeSpreadsheet)
       df_new_value = df.copy()
@@ -54,13 +56,13 @@ def executeUpdate():
         cur = con.cursor()
         cur.executemany(updateNewValuesSQL, dados)
         con.commit()
+        print('Valores de produtos atualizados!')
       except oracledb.Error as e:
         print(e)
       finally:
         cur.close()
-        con.close()    
-      print('Valores de produtos atualizados!')
-
+        con.close()   
+      
 def checkTheUpdateType():
   messages.checkTheUpdateType()
   key = msvcrt.getch().decode()
