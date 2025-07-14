@@ -13,15 +13,15 @@ if get_connection():
         selectOptions = msvcrt.getch().decode()
 
         if selectOptions == '1':
-            os.system('cls')
+            messages.terminalCleaning()
             executeInsert()
             
         elif selectOptions == '2':
-            os.system('cls')
+            messages.terminalCleaning()
             executeUpdate()
 
         elif selectOptions == '0':
-            os.system('cls')
+            messages.terminalCleaning()
             break
         else:
-            os.system('cls')
+            messages.terminalCleaning()

@@ -1,5 +1,6 @@
 from src.db.connection import get_connection
 from src.queries.from_to_last_value_queries import fromToLastValueMedSQL, fromToLastValueMatSQL
+from src.utils import messages
 import pandas as pd
 import msvcrt
 import os
@@ -7,28 +8,32 @@ import oracledb
 import datetime
 from openpyxl import load_workbook
 
-def updatedProcedures(typeSpreadsheet):
+def updatedProcedures(typeSpreadsheet=None):
+  def runQuery(query):
+    try:
+      con = get_connection()
+      cur = con.cursor()
+      cur.execute(query)
+      rows = cur.fetchall()
+      columns = [col[0] for col in cur.description]
+
+      df = pd.DataFrame(rows, columns=columns)
+      return df
+    except oracledb.Error as e:
+      orint(f"Erro ao executar a consulta: {e}")
+    finally:
+      cur.close()
+      con.close()
+
   if typeSpreadsheet == 0:
     fromToLastValueSQL = fromToLastValueMedSQL
+    return runQuery(fromToLastValueSQL)
   elif typeSpreadsheet == 1:
     fromToLastValueSQL = fromToLastValueMatSQL
-
-  
-  try:
-    con = get_connection()
-    cur = con.cursor()
-    cur.execute(fromToLastValueSQL)
-    rows = cur.fetchall()
-    columns = [col[0] for col in cur.description]
-
-    df = pd.DataFrame(rows, columns=columns)
-  except oracledb.Error as e:
-    print(e)
-  finally:
-    cur.close()
-    con.close()
-
-  return df
+    return runQuery(fromToLastValueSQL)
+  else:
+    messages.invalidOption()
+    return None
 
 
 def exportUpdatedProcedures(typeSpreadsheet):

@@ -71,11 +71,8 @@ def checkCleanlinessFromTo(msg=None):
         print('Opção inválida. Tente novamente!')
         checkCleanlinessFromTo()            
 
-def UpdatedCleanOptions():
-    print('Valores de procedimentos já existentes com vigencia atual!\n')
-    print('Deseja limpar os valores com a vigencia atual?\n')
-    print('1 - Sim.')
-    print('2 - Não, retornar ao menu.')
+def updatedCleanOptions():
+    messages.updatedCleanOptions()    
 
     clean_update = msvcrt.getch().decode()
     if clean_update == '1':
@@ -91,7 +88,7 @@ def UpdatedCleanOptions():
             con.close()
 
         messages.terminalCleaning()
-        print('\nLimpeza de valores realizada!')
+        print('* Limpeza de valores realizada!*\n')
     elif clean_update == '2':
         messages.terminalCleaning()
     else:

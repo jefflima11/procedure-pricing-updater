@@ -1,7 +1,7 @@
 from src.db.connection import get_connection
 from src.services.from_to_last_value import updatedProcedures
 from src.queries.update_queries import updateNewValuesSQL, checkUpdateSQL, cleanUpdateSQL
-from src.utils.options import UpdatedCleanOptions
+from src.utils.options import updatedCleanOptions
 from src.utils import messages
 import os
 import msvcrt
@@ -26,42 +26,55 @@ def verificaUpdate():
   return verif
 
 def executeUpdate():
-  # Verifica o tipo de atualização
-  typeSpreadsheet = checkTheUpdateType()
-  # Verifica se a tabela de de-para esta vazia
-  if updatedProcedures(typeSpreadsheet).empty:
-    if typeSpreadsheet == 0:
-      msg = print('Não existe importação da tabela Brasindice.')
-    elif typeSpreadsheet == 1:
-      msg =print('Não existe importação da tabela Simpro.')
-    return msg
-  else:
-    if verificaUpdate() == 0:
-      UpdatedCleanOptions()  
-      
-    else:
-      df = updatedProcedures(typeSpreadsheet)
-      df_new_value = df.copy()
+  while True:
+    # Verifica o tipo de atualização
+    typeSpreadsheet = checkTheUpdateType()
+    dfUpdate = updatedProcedures(typeSpreadsheet)
 
-      df_new_value = df_new_value[['CD_PRO_FAT', 'NEW_VALUE']]
+    if typeSpreadsheet == 3:
+      messages.terminalCleaning()
+      return
 
+    # Verifica se a tabela de de-para esta vazia
+    if dfUpdate is None:
+      messages.terminalCleaning()
+      messages.invalidOption()
+    elif dfUpdate.empty:
+      messages.terminalCleaning()
       if typeSpreadsheet == 0:
-        df_new_value['CD_TAB_FAT'] = 1
+        print('* Não existe importação da tabela Brasindice *\n')
       elif typeSpreadsheet == 1:
-        df_new_value['CD_TAB_FAT'] = 50
+        print('* Não existe importação da tabela Simpro *\n')
+    else:
+      if verificaUpdate() == 0:
+        updatedCleanOptions()  
+      else:
+        messages.terminalCleaning()
+        dfNewValue = dfUpdate.copy()
 
-      dados = df_new_value.to_dict(orient='records')
-      try:
-        con = get_connection()
-        cur = con.cursor()
-        cur.executemany(updateNewValuesSQL, dados)
-        con.commit()
-        print('Valores de produtos atualizados!')
-      except oracledb.Error as e:
-        print(e)
-      finally:
-        cur.close()
-        con.close()   
+        dfNewValue = dfNewValue[['CD_PRO_FAT', 'NEW_VALUE']]
+
+        if typeSpreadsheet == 0:
+          dfNewValue['CD_TAB_FAT'] = 1
+        elif typeSpreadsheet == 1:
+          dfNewValue['CD_TAB_FAT'] = 50
+
+        dados = dfNewValue.to_dict(orient='records')
+        try:
+          con = get_connection()
+          cur = con.cursor()
+          cur.executemany(updateNewValuesSQL, dados)
+          con.commit()
+          print('* Valores de produtos atualizados! *\n')
+        except oracledb.Error as e:
+          print(e)
+        finally:
+          cur.close()
+          con.close()   
+      # return
+    
+
+    
       
 def checkTheUpdateType():
   messages.checkTheUpdateType()
@@ -71,7 +84,9 @@ def checkTheUpdateType():
     typeSpreadsheet = 0
   elif key == '2':
     typeSpreadsheet = 1
+  elif key == '0':
+    typeSpreadsheet = 3
   else:
-    return
-  
+    typeSpreadsheet = 4
+
   return typeSpreadsheet

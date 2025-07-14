@@ -4,13 +4,12 @@ def terminalCleaning():
     os.system('cls' if os.name == 'nt' else 'clear')
 
 def homeMenu(user):
-    terminalCleaning()
+    # terminalCleaning()
     print('Usuario: ', user)
     print('\nSelecionar função: \n')
     print('1 - Tratamento de planilha e insercao na tabela de-para.')
     print('2 - Update de valores internos.\n')
     print('0 - Fechar sistema\n')
-    print('pressione a tecla da opção desejada: ')
 
 def chooseSpreadsheetType():
     terminalCleaning()
@@ -32,7 +31,19 @@ def checkCleanlinessFromTo():
     print('2 - Não, retornar ao menu.\n')
 
 def checkTheUpdateType():
+    # terminalCleaning()
     print('Qual tipo de atualização deseja realizar?\n')
     print('1 - Brasindice.')
     print('2 - Simpro.\n')
     print('\n0 - Retornar ao menu.')
+
+
+def updatedCleanOptions():
+    terminalCleaning()    
+    print('Valores de procedimentos já existentes com vigencia atual!\n')
+    print('Deseja limpar os valores com a vigencia atual?\n')
+    print('1 - Sim.')
+    print('2 - Não, retornar ao menu.')
+
+def invalidOption():
+    print('* Opção inválida, tente novamente! *\n')
