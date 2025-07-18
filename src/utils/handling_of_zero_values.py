@@ -1,4 +1,5 @@
 import datetime
+import streamlit as st
 
 def handlingOfZeroValues(df, typeSpreadsheet):
     now = datetime.datetime.now()
@@ -15,3 +16,5 @@ def handlingOfZeroValues(df, typeSpreadsheet):
         typeS = "materiais"
 
     dfZeroValues.to_excel(f"./src/resources/out/relatório-{typeS}{now_formated}.xlsx", sheet_name='Proced_zerados', index=False)
+    msg = f"Relatório de valores zerados gerado com sucesso. Total de registros: {len(dfZeroValues)}"
+    return msg

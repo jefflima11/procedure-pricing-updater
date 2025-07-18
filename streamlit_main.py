@@ -40,27 +40,55 @@ def login_page():
                         st.rerun()
                     return conn
 
-def executeInsert(con=None):
+def insert_data(con=None):
     uploaded_file = st.file_uploader("Envie um documento", type=["csv", "xlsx"])
     if uploaded_file is not None:
         df = pd.read_excel(uploaded_file) if uploaded_file.name.endswith('.xlsx') else pd.read_csv(uploaded_file)
-        # st.write("Dados carregados:")
-        # st.write(uploaded_file.name)
        
         if "med" in uploaded_file.name.lower():
-            if data_processor.executeInsert(con) is None:
+            state = data_processor.check_from_to_table(con)
+            if state is None:
+                st.write('Opcao nula')
                 st.write("Tipo de planilha: Medicamentos")
-                teste = data_processor.medicationsProcedures(df, con)
-                st.write(teste)
+                process = data_processor.medicationsProcedures(df, con)
+                st.write(process)
+                return
+            elif state == "empty":
+                st.write("Opcao vazia")
+                return
+            elif state == 0:
+                st.write('Opcao zero')
+
+                def from_to_cleaner(con):
+                    st.write("Já existe logs de de-para. Deseja limpar?", con)
+
+                    def cleaner(con=None):
+                        try:
+                            cur = con.cursor()
+                            cur.execute("DELETE FROM DBAHUMS.DE_PARA_HUMS")
+                            con.commit()
+                            st.success("Logs de de-para limpos com sucesso!")
+                        except oracledb.Error as e:
+                            return e
+
+                    st.button("Limpar logs", on_click=cleaner, args=(con,))
+
+                from_to_cleaner(con)
+
+                return
             else:
-                st.write('Calma calabreso')
+                st.write('opcao outros')
+                return    
+            
+            return
         elif "mat" in uploaded_file.name.lower():
             st.write("Tipo de planilha: Materiais")
         else:
             st.write("Tipo de planilha não identificado. Por favor, verifique o nome do arquivo.")
-        # st.write(filtered)
-        # st.write(data_processor.executeInsert(con, uploaded_file))
-
+            return
+        return
+    st.write('ok!')
+    return
 
 def menu_page():
     def title(text):
@@ -93,10 +121,8 @@ def menu_page():
 
     if escolha == "Inserir":
         title("Inserir Dados")
-        st.write("Chamaria função de Inserção aqui.")
         con = get_connection(st.session_state.user, st.session_state.pw, st.session_state.dsn)
-        executeInsert(con)
-        # executeInsert(con)
+        st.write(insert_data(con))
     elif escolha == "Atualizar":
         title("Atualizar Dados")
         st.write("Chamaria função de Atualização aqui.")

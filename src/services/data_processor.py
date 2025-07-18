@@ -3,13 +3,13 @@ from src.utils.spreadsheet_data_processing import importSpreadsheet
 from src.utils.checks_for_unconfigured_procedures import checksForUnconfiguredProcedures, exportForUnconfiguredProcedures
 from src.utils.handling_of_zero_values import handlingOfZeroValues
 from src.utils.procedures_without_brasindice import proceduresWithoutBrasindice
-from src.utils.options import confirmChosenOption, chooseSpreadsheetType, checkCleanlinessFromTo
+from src.utils.options import confirmChosenOption, chooseSpreadsheetType
 from src.services.from_to_last_value import exportUpdatedProcedures
 import pandas as pd
 import oracledb
+import streamlit as st  
 
-def executeInsert(con=None):
-
+def check_from_to_table(con=None):
     try:
         cur = con.cursor()
         cur.execute(checkExistsFromToSQL)
@@ -18,14 +18,11 @@ def executeInsert(con=None):
         if not rows:
             return None
         else:
-            checkCleanlinessFromTo()    
+            return 0
     except oracledb.Error as e:
-        print(e)
+        return (e)
 
-def medicationsProcedures(df=None, con=None):
-    if df is None:
-        return None
-
+def medicationsProcedures(df, con):
     typeSpreadsheet = 0
 
     df0 = df.rename(columns={'Cod TISS Brasindice': 'tiss', 'Preço Máximo Intercâmbio Nacional': 'valor', 'Nome e Apresentação Comercial': 'descricao', 'Código': 'codigo_brasindice'})
@@ -34,9 +31,18 @@ def medicationsProcedures(df=None, con=None):
     df0 = df0[['tiss','valor']]
     df0['tiss'] = df0['tiss'].astype(str)
 
-    handlingOfZeroValues(newDf, typeSpreadsheet)
-    checksForUnconfiguredProcedures(newDf, typeSpreadsheet, con)
-    proceduresWithoutBrasindice(newDf)
+    def state_function(function):
+        if function[0] == 'S':
+            st.success(function[1], icon="✅")
+        else:
+            st.warning(function[1], icon="⚠️")
+    tst = handlingOfZeroValues(newDf, typeSpreadsheet)
+    st.success(tst[0], icon="✅")
+    # state_function(handlingOfZeroValues(newDf, typeSpreadsheet))
+    tst2 = checksForUnconfiguredProcedures(newDf, typeSpreadsheet, con)
+    st.write(tst2[0])
+    st.write(proceduresWithoutBrasindice(newDf) )
+
 
     dfFilter = df0.loc[(df0['valor'] != 0) & (df0['tiss'] != 'NAO POSSUI BRASINDICE'), ['tiss', 'valor']]
     dfFilter['vl_honorario'] = 0
@@ -56,11 +62,14 @@ def materialsProcedures(df=None):
     newDf = df0[['tuss', 'descricao', 'valor']]
     df0 = df0[['tuss', 'valor']]
     df0['tuss'] = df0['tuss'].astype(str)
+
     handlingOfZeroValues(newDf, typeSpreadsheet, con)
     checksForUnconfiguredProcedures(newDf, typeSpreadsheet, con)
+
     dfFilter = df0.loc[df0['valor'] != 0, ['tuss', 'valor']]
     dfFilter['vl_honorario'] = 0
     dfFilter['vl_operacional'] = 0
+
     confirmChosenOption(dfFilter, typeSpreadsheet, con)
     exportUpdatedProcedures(typeSpreadsheet, con)
 

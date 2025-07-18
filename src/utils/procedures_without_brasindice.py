@@ -16,5 +16,11 @@ def proceduresWithoutBrasindice(df):
     try:
         with pd.ExcelWriter(path, engine='openpyxl', mode='a') as writer:
             df.to_excel(writer, sheet_name='Proced_sem_brasindice', index=False)
+        msg = {
+            'type': 'S',
+            'msg': f'Relatório de procedimentos sem brasindice gerado com sucesso. Total de registros: {len(df)}'
+        }
+        return msg
     except:
-        print('Erro na importação os procedimentos sem brasindice')
+        msg = {'msg':'Erro na importação os procedimentos sem brasindice'}
+        return msg

@@ -57,9 +57,9 @@ def checkCleanlinessFromTo(msg=None):
         except oracledb.Error as e:
             print('Erro ao tentar realizar limpeza da tabela DE_PARA_HUMS:')
             print(e)
-        finally:    
-            cur.close()
-            con.close()
+        # finally:    
+        #     cur.close()
+        #     con.close()
 
         messages.terminalCleaning()
         print('* Limpeza de de-para realizada! *')

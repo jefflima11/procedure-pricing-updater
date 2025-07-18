@@ -20,13 +20,11 @@ def checksForUnconfiguredProcedures(df, typeSpreadsheet, con):
         cur = con.cursor()
         cur.executemany(insertProceduresInLogSQL, data)
         con.commit()
-        print('teste4')
+        msg = f"Procedimentos não configurados inseridos no log com sucesso. Total de registros: {len(data)}"
+        return msg
     except oracledb.Error as e:
-        print('Erro ao executar insert:')
-        print(e)
-    # finally:
-    #     cur.close()
-    #     con.close()
+        erro = f"Erro ao inserir procedimentos no log: {e}"
+        return erro
 
 def exportForUnconfiguredProcedures(typeSpreadsheet, con):
     now = datetime.datetime.now()
