@@ -5,7 +5,7 @@ from openpyxl import load_workbook
 import oracledb
 import datetime
 
-def checksForUnconfiguredProcedures(df, typeSpreadsheet):
+def checksForUnconfiguredProcedures(df, typeSpreadsheet, con):
     if typeSpreadsheet == 0:
         df = df.loc[(df['valor'] != 0) & (df['tiss'] != 'NAO POSSUI BRASINDICE'), ['tiss', 'codigo_brasindice','valor', 'descricao']]
         insertProceduresInLogSQL = insertProceduresInLogMedSQL
@@ -15,20 +15,20 @@ def checksForUnconfiguredProcedures(df, typeSpreadsheet):
         insertProceduresInLogSQL = insertProceduresInLogMatSQL
 
     data = df.to_dict(orient='records')
-
+    
     try:
-        con = get_connection()
         cur = con.cursor()
         cur.executemany(insertProceduresInLogSQL, data)
         con.commit()
+        print('teste4')
     except oracledb.Error as e:
         print('Erro ao executar insert:')
         print(e)
-    finally:
-        cur.close()
-        con.close()
+    # finally:
+    #     cur.close()
+    #     con.close()
 
-def exportForUnconfiguredProcedures(typeSpreadsheet):
+def exportForUnconfiguredProcedures(typeSpreadsheet, con):
     now = datetime.datetime.now()
     now_formated = now.strftime("%d%m%Y")
 
@@ -45,7 +45,6 @@ def exportForUnconfiguredProcedures(typeSpreadsheet):
 
     # Verifica em consulta os procedimentos que não tem condiguração na M_BRASIND
     try:
-        con = get_connection()
         cur = con.cursor()
         cur.execute(proceduresUnconfiguredLogSQL)
         rows = cur.fetchall()
@@ -54,9 +53,9 @@ def exportForUnconfiguredProcedures(typeSpreadsheet):
     except oracledb.Error as e:
         print('Error ao realizar consulta a tabela LOG_PROC_NAO_CONFIG_HUMS')
         print(e)
-    finally:
-        cur.close()
-        con.close()
+    # finally:
+    #     cur.close()
+    #     con.close()
 
     # Adiciona nova aba na planilha de pendencias sem sobrescrever as existentes
     with pd.ExcelWriter(path, engine='openpyxl', mode='a') as writer:
@@ -64,13 +63,12 @@ def exportForUnconfiguredProcedures(typeSpreadsheet):
     
     # Limpa a tabela de log de procedimentos
     try:
-        con = get_connection()
         cur = con.cursor()
         cur.execute(deleteProceduresInLogSQL)
         con.commit()
     except oracledb.Error as e:
         print('Erro ao realizar limpeza da tabela LOG_PROC_NAO_CONFIG_HUMS:')
         print(e)
-    finally:
-        cur.close()
-        con.close()
+    # finally:
+    #     cur.close()
+    #     con.close()

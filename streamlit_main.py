@@ -9,15 +9,15 @@ dotenv.load_dotenv()
 
 oracledb.init_oracle_client(lib_dir=os.getenv(""))
 
-def login_page():
-    def get_connection(user, pw, dsn):
-        try:
-            conn = oracledb.connect(user=user, password=pw, dsn=dsn)
-            return conn
-        except oracledb.Error as e:
-            st.error(f"Erro ao conectar ao banco de dados: {e}")
-            return None
+def get_connection(user, pw, dsn):
+    try:
+        conn = oracledb.connect(user=user, password=pw, dsn=dsn)
+        return conn
+    except oracledb.Error as e:
+        st.error(f"Erro ao conectar ao banco de dados: {e}")
+        return None
 
+def login_page():
     st.title("Login")
 
     if "user" not in st.session_state:
@@ -35,15 +35,31 @@ def login_page():
                     conn = get_connection(user, pw, dsn)
                     if conn:
                         st.session_state.user = user
+                        st.session_state.pw = pw
+                        st.session_state.dsn = dsn
                         st.rerun()
+                    return conn
 
-def executeInsert():
-    # uploaded_file = st.file_uploader("Envie um documento", type=["csv", "xlsx"])
-    # if uploaded_file is not None:
-    #     df = pd.read_excel(uploaded_file) if uploaded_file.name.endswith('.xlsx') else pd.read_csv(uploaded_file)
-    #     st.write("Dados carregados:")
-        # st.write(insertFromToMatSQL)
-    st.write("Tratamento de dados de medicamentos iniciado...a", data_processor.executeInsert())
+def executeInsert(con=None):
+    uploaded_file = st.file_uploader("Envie um documento", type=["csv", "xlsx"])
+    if uploaded_file is not None:
+        df = pd.read_excel(uploaded_file) if uploaded_file.name.endswith('.xlsx') else pd.read_csv(uploaded_file)
+        # st.write("Dados carregados:")
+        # st.write(uploaded_file.name)
+       
+        if "med" in uploaded_file.name.lower():
+            if data_processor.executeInsert(con) is None:
+                st.write("Tipo de planilha: Medicamentos")
+                teste = data_processor.medicationsProcedures(df, con)
+                st.write(teste)
+            else:
+                st.write('Calma calabreso')
+        elif "mat" in uploaded_file.name.lower():
+            st.write("Tipo de planilha: Materiais")
+        else:
+            st.write("Tipo de planilha não identificado. Por favor, verifique o nome do arquivo.")
+        # st.write(filtered)
+        # st.write(data_processor.executeInsert(con, uploaded_file))
 
 
 def menu_page():
@@ -78,7 +94,9 @@ def menu_page():
     if escolha == "Inserir":
         title("Inserir Dados")
         st.write("Chamaria função de Inserção aqui.")
-        executeInsert()
+        con = get_connection(st.session_state.user, st.session_state.pw, st.session_state.dsn)
+        executeInsert(con)
+        # executeInsert(con)
     elif escolha == "Atualizar":
         title("Atualizar Dados")
         st.write("Chamaria função de Atualização aqui.")

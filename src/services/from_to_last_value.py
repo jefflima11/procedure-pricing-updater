@@ -1,17 +1,13 @@
-from src.db.connection import get_connection
 from src.queries.from_to_last_value_queries import fromToLastValueMedSQL, fromToLastValueMatSQL
-from src.utils import messages
 import pandas as pd
-import msvcrt
 import os
 import oracledb
 import datetime
 from openpyxl import load_workbook
 
-def updatedProcedures(typeSpreadsheet=None):
+def updatedProcedures(typeSpreadsheet=None, con=None):
   def runQuery(query):
     try:
-      con = get_connection()
       cur = con.cursor()
       cur.execute(query)
       rows = cur.fetchall()
@@ -21,9 +17,6 @@ def updatedProcedures(typeSpreadsheet=None):
       return df
     except oracledb.Error as e:
       orint(f"Erro ao executar a consulta: {e}")
-    finally:
-      cur.close()
-      con.close()
 
   if typeSpreadsheet == 0:
     fromToLastValueSQL = fromToLastValueMedSQL
@@ -32,12 +25,11 @@ def updatedProcedures(typeSpreadsheet=None):
     fromToLastValueSQL = fromToLastValueMatSQL
     return runQuery(fromToLastValueSQL)
   else:
-    messages.invalidOption()
-    return None
+    return 'Erro na definição do tipo de planilha!'
 
 
-def exportUpdatedProcedures(typeSpreadsheet):
-  df = updatedProcedures(typeSpreadsheet)
+def exportUpdatedProcedures(typeSpreadsheet, con):
+  df = updatedProcedures(typeSpreadsheet, con)
 
   if typeSpreadsheet == 0:
     typeS = "medicamentos"
@@ -46,7 +38,6 @@ def exportUpdatedProcedures(typeSpreadsheet):
 
   df['diff'] = df['NEW_VALUE'] - df['OLD_VALUE']
   df['percent'] = ((df['NEW_VALUE'] - df['OLD_VALUE']) / df['OLD_VALUE']) * 100
-  # print(df.head().dtypes)
   data = df.to_dict(orient='records')
 
   now = datetime.datetime.now()
