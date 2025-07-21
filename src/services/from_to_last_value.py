@@ -48,5 +48,13 @@ def exportUpdatedProcedures(typeSpreadsheet, con):
   try:
     with pd.ExcelWriter(path, engine='openpyxl', mode='a') as writer:
       df.to_excel(writer, sheet_name='Proced_atualizados', index=False)
+      msg = {
+          'type': 'S',
+          'msg': f'Procedimentos atualizados exportados com sucesso para {path}'
+      }
   except:
-      print('Erro ao importar os procedimentos atualizados!')
+      msg = {
+          'type': 'E',
+          'msg': 'Erro ao importar os procedimentos atualizados!'
+      }
+  return msg

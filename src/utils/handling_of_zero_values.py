@@ -15,6 +15,15 @@ def handlingOfZeroValues(df, typeSpreadsheet):
         dfZeroValues = df.loc[df['valor'] == 0.0000, ['tuss','valor', 'descricao']]
         typeS = "materiais"
 
-    dfZeroValues.to_excel(f"./src/resources/out/relatório-{typeS}{now_formated}.xlsx", sheet_name='Proced_zerados', index=False)
-    msg = f"Relatório de valores zerados gerado com sucesso. Total de registros: {len(dfZeroValues)}"
+    try:
+        dfZeroValues.to_excel(f"./src/resources/out/relatório-{typeS}{now_formated}.xlsx", sheet_name='Proced_zerados', index=False)
+        msg = {
+            'type': 'S',
+            'msg': len(dfZeroValues)
+        }
+    except Exception as e:
+        msg = {
+            'type': 'E',
+            'msg': f'Erro ao gerar relatório de valores zerados: {str(e)}'
+        }
     return msg

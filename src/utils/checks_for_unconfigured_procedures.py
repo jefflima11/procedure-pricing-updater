@@ -20,11 +20,16 @@ def checksForUnconfiguredProcedures(df, typeSpreadsheet, con):
         cur = con.cursor()
         cur.executemany(insertProceduresInLogSQL, data)
         con.commit()
-        msg = f"Procedimentos não configurados inseridos no log com sucesso. Total de registros: {len(data)}"
-        return msg
+        msg = {
+            'type': 'S',
+            'msg': len(data)
+        }
     except oracledb.Error as e:
-        erro = f"Erro ao inserir procedimentos no log: {e}"
-        return erro
+        msg = {
+            'type': 'E',
+            'msg': f'Erro ao inserir procedimentos não configurados no log: {e}'
+        }
+    return msg
 
 def exportForUnconfiguredProcedures(typeSpreadsheet, con):
     now = datetime.datetime.now()
@@ -48,12 +53,16 @@ def exportForUnconfiguredProcedures(typeSpreadsheet, con):
         rows = cur.fetchall()
         columns = [col[0] for col in cur.description]
         df = pd.DataFrame(rows, columns=columns)
+        msg = {
+            'type': 'S',
+            'msg': len(df)
+        }
     except oracledb.Error as e:
-        print('Error ao realizar consulta a tabela LOG_PROC_NAO_CONFIG_HUMS')
-        print(e)
-    # finally:
-    #     cur.close()
-    #     con.close()
+        msg = {
+            'type': 'E',
+            'msg': f'Erro ao realizar consulta de procedimentos não configurados: {e}'
+        }
+    return msg
 
     # Adiciona nova aba na planilha de pendencias sem sobrescrever as existentes
     with pd.ExcelWriter(path, engine='openpyxl', mode='a') as writer:
@@ -65,8 +74,8 @@ def exportForUnconfiguredProcedures(typeSpreadsheet, con):
         cur.execute(deleteProceduresInLogSQL)
         con.commit()
     except oracledb.Error as e:
-        print('Erro ao realizar limpeza da tabela LOG_PROC_NAO_CONFIG_HUMS:')
-        print(e)
-    # finally:
-    #     cur.close()
-    #     con.close()
+        msg = {
+            'type': 'E',
+            'msg': f'Erro ao limpar tabela de log de procedimentos: {e}'
+        }
+    return msg

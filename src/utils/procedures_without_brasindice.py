@@ -18,9 +18,11 @@ def proceduresWithoutBrasindice(df):
             df.to_excel(writer, sheet_name='Proced_sem_brasindice', index=False)
         msg = {
             'type': 'S',
-            'msg': f'Relatório de procedimentos sem brasindice gerado com sucesso. Total de registros: {len(df)}'
+            'msg': len(df)
         }
-        return msg
     except:
-        msg = {'msg':'Erro na importação os procedimentos sem brasindice'}
-        return msg
+        msg = {
+            'type': 'E',
+            'msg': 'Erro ao gerar relatório de procedimentos sem brasindice'
+        }
+    return msg

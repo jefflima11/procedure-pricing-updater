@@ -5,9 +5,11 @@ from src.utils.handling_of_zero_values import handlingOfZeroValues
 from src.utils.procedures_without_brasindice import proceduresWithoutBrasindice
 from src.utils.options import confirmChosenOption, chooseSpreadsheetType
 from src.services.from_to_last_value import exportUpdatedProcedures
+from src.utils import states
 import pandas as pd
 import oracledb
 import streamlit as st  
+
 
 def check_from_to_table(con=None):
     try:
@@ -31,30 +33,21 @@ def medicationsProcedures(df, con):
     df0 = df0[['tiss','valor']]
     df0['tiss'] = df0['tiss'].astype(str)
 
-    def state_function(function):
-        if function[0] == 'S':
-            st.success(function[1], icon="✅")
-        else:
-            st.warning(function[1], icon="⚠️")
-    tst = handlingOfZeroValues(newDf, typeSpreadsheet)
-    st.success(tst[0], icon="✅")
-    # state_function(handlingOfZeroValues(newDf, typeSpreadsheet))
-    tst2 = checksForUnconfiguredProcedures(newDf, typeSpreadsheet, con)
-    st.write(tst2[0])
-    st.write(proceduresWithoutBrasindice(newDf) )
+    
+    zero = handlingOfZeroValues(newDf, typeSpreadsheet)
+    unconf = checksForUnconfiguredProcedures(newDf, typeSpreadsheet, con)
+    brasind = proceduresWithoutBrasindice(newDf)
 
-
+    
     dfFilter = df0.loc[(df0['valor'] != 0) & (df0['tiss'] != 'NAO POSSUI BRASINDICE'), ['tiss', 'valor']]
     dfFilter['vl_honorario'] = 0
     dfFilter['vl_operacional'] = 0
 
-    insertFromTo(dfFilter, typeSpreadsheet, con)
-    exportUpdatedProcedures(typeSpreadsheet, con)
+    fromTo = insertFromTo(dfFilter, typeSpreadsheet, con)
+    updated = exportUpdatedProcedures(typeSpreadsheet, con)
+    st.warning(f"{zero['msg']} procedimentos zerados, {unconf['msg']} não configurados, {brasind['msg']} sem Brasindice e {fromTo['msg']} inseridos", icon="⚠️")
 
-def materialsProcedures(df=None):
-    if df is None:
-        return None
-
+def materialsProcedures(df, con):
     typeSpreadsheet = 1
 
     df0 = df.rename(columns={'Código': 'tuss', 'Valor Máximo Intercâmbio Nacional': 'valor', 'Descrição do Produto': 'descricao'})
@@ -63,15 +56,17 @@ def materialsProcedures(df=None):
     df0 = df0[['tuss', 'valor']]
     df0['tuss'] = df0['tuss'].astype(str)
 
-    handlingOfZeroValues(newDf, typeSpreadsheet, con)
-    checksForUnconfiguredProcedures(newDf, typeSpreadsheet, con)
+    zero = handlingOfZeroValues(newDf, typeSpreadsheet)
+    unconf = checksForUnconfiguredProcedures(newDf, typeSpreadsheet, con)
 
     dfFilter = df0.loc[df0['valor'] != 0, ['tuss', 'valor']]
     dfFilter['vl_honorario'] = 0
     dfFilter['vl_operacional'] = 0
 
-    confirmChosenOption(dfFilter, typeSpreadsheet, con)
-    exportUpdatedProcedures(typeSpreadsheet, con)
+    fromTo = insertFromTo(dfFilter, typeSpreadsheet, con)
+    updated = exportUpdatedProcedures(typeSpreadsheet, con)
+
+    st.warning(f"{zero['msg']} procedimentos zerados, {unconf['msg']} não configurados e {fromTo['msg']} inseridos", icon="⚠️")
 
 def insertFromTo(dfFilter, typeSpreadsheet, con=None):
     data = dfFilter.to_dict(orient='records')
@@ -85,7 +80,15 @@ def insertFromTo(dfFilter, typeSpreadsheet, con=None):
         cur = con.cursor()
         cur.executemany(insertFromToSQL, data)
         con.commit()
+        msg = {
+            'type': 'S',
+            'msg': len(data)
+        }
     except oracledb.Error as e:
-        return e
+        msg = {
+            'type': 'E',
+            'msg': f'Erro ao inserir dados na tabela de de-para: {e}'
+        }
+    return msg
 
-    exportForUnconfiguredProcedures(typeSpreadsheet, con)
+    states.state_function(exportForUnconfiguredProcedures(typeSpreadsheet, con))
