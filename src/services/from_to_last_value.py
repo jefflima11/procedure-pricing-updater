@@ -1,9 +1,9 @@
-from src.queries.from_to_last_value_queries import fromToLastValueMedSQL, fromToLastValueMatSQL
+from src.queries import from_to_last_value_queries
+from openpyxl import load_workbook
 import pandas as pd
 import os
 import oracledb
 import datetime
-from openpyxl import load_workbook
 
 def updatedProcedures(typeSpreadsheet=None, con=None):
   def runQuery(query):
@@ -17,16 +17,15 @@ def updatedProcedures(typeSpreadsheet=None, con=None):
       return df
     except oracledb.Error as e:
       orint(f"Erro ao executar a consulta: {e}")
-
+    
   if typeSpreadsheet == 0:
-    fromToLastValueSQL = fromToLastValueMedSQL
+    fromToLastValueSQL = from_to_last_value_queries.from_to_last_value_medSQL
     return runQuery(fromToLastValueSQL)
   elif typeSpreadsheet == 1:
-    fromToLastValueSQL = fromToLastValueMatSQL
+    fromToLastValueSQL = from_to_last_value_queries.from_to_last_value_matSQL
     return runQuery(fromToLastValueSQL)
   else:
     return 'Erro na definição do tipo de planilha!'
-
 
 def exportUpdatedProcedures(typeSpreadsheet, con):
   df = updatedProcedures(typeSpreadsheet, con)

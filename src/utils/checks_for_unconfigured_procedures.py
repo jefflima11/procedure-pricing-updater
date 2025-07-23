@@ -1,18 +1,17 @@
-from src.db.connection import get_connection
-from src.queries.checks_for_unconfigured_procedures_queries import insertProceduresInLogMedSQL, proceduresUnconfiguredLogMedSQL, deleteProceduresInLogSQL, insertProceduresInLogMatSQL, proceduresUnconfiguredLogMatSQL
-import pandas as pd
+from src.queries import checks_for_unconfigured_procedures_queries
 from openpyxl import load_workbook
+import pandas as pd
 import oracledb
 import datetime
 
-def checksForUnconfiguredProcedures(df, typeSpreadsheet, con):
+def checks_for_unconfigured_procedures(df, typeSpreadsheet, con):
     if typeSpreadsheet == 0:
         df = df.loc[(df['valor'] != 0) & (df['tiss'] != 'NAO POSSUI BRASINDICE'), ['tiss', 'codigo_brasindice','valor', 'descricao']]
-        insertProceduresInLogSQL = insertProceduresInLogMedSQL
+        insertProceduresInLogSQL = checks_for_unconfigured_procedures_queries.insert_procedures_in_log_medSQL
 
     elif typeSpreadsheet == 1:
         df = df.loc[df['valor'] != 0, ['tuss','valor', 'descricao']]
-        insertProceduresInLogSQL = insertProceduresInLogMatSQL
+        insertProceduresInLogSQL = checks_for_unconfigured_procedures_queries.insert_procedures_in_log_matSQL
 
     data = df.to_dict(orient='records')
     
@@ -36,10 +35,10 @@ def exportForUnconfiguredProcedures(typeSpreadsheet, con):
     now_formated = now.strftime("%d%m%Y")
 
     if typeSpreadsheet == 0:
-        proceduresUnconfiguredLogSQL = proceduresUnconfiguredLogMedSQL
+        procedures_unconfigured_logSQL = checks_for_unconfigured_procedures_queries.procedures_unconfigured_log_medSQL
         typeS = "medicamentos"
     elif typeSpreadsheet == 1:
-        proceduresUnconfiguredLogSQL = proceduresUnconfiguredLogMatSQL
+        procedures_unconfigured_logSQL = checks_for_unconfigured_procedures_queries.procedures_unconfigured_log_matSQL
         typeS = "materiais"
     path = f'./src/resources/out/relatório-{typeS}{now_formated}.xlsx'
     
@@ -71,7 +70,7 @@ def exportForUnconfiguredProcedures(typeSpreadsheet, con):
     # Limpa a tabela de log de procedimentos
     try:
         cur = con.cursor()
-        cur.execute(deleteProceduresInLogSQL)
+        cur.execute(delete_procedures_in_logSQL)
         con.commit()
     except oracledb.Error as e:
         msg = {

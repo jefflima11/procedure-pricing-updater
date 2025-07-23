@@ -1,11 +1,6 @@
-from src.queries.data_processor_queries import cleanFromToSQL, checkExistsFromToSQL, insertFromToMedSQL, insertFromToMatSQL
-from src.utils.spreadsheet_data_processing import importSpreadsheet
-from src.utils.checks_for_unconfigured_procedures import checksForUnconfiguredProcedures, exportForUnconfiguredProcedures
-from src.utils.handling_of_zero_values import handlingOfZeroValues
-from src.utils.procedures_without_brasindice import proceduresWithoutBrasindice
-from src.utils.options import confirmChosenOption, chooseSpreadsheetType
+from src.queries import data_processor_queries
+from src.utils import procedures_without_brasindice, handling_of_zero_values, checks_for_unconfigured_procedures, states
 from src.services.from_to_last_value import exportUpdatedProcedures
-from src.utils import states
 import pandas as pd
 import oracledb
 import streamlit as st  
@@ -14,13 +9,15 @@ import streamlit as st
 def check_from_to_table(con=None):
     try:
         cur = con.cursor()
-        cur.execute(checkExistsFromToSQL)
+        cur.execute(data_processor_queries.check_exists_from_toSQL)
         rows = cur.fetchall()
 
-        if not rows:
-            return None
+        if rows[0][0] == 1:
+            return 1
+        elif rows[0][0] == 2:
+            return 2
         else:
-            return 0
+            return 3
     except oracledb.Error as e:
         return (e)
 
@@ -34,11 +31,10 @@ def medicationsProcedures(df, con):
     df0['tiss'] = df0['tiss'].astype(str)
 
     
-    zero = handlingOfZeroValues(newDf, typeSpreadsheet)
-    unconf = checksForUnconfiguredProcedures(newDf, typeSpreadsheet, con)
-    brasind = proceduresWithoutBrasindice(newDf)
+    zero = handling_of_zero_values.handlingOfZeroValues(newDf, typeSpreadsheet)
+    unconf = checks_for_unconfigured_procedures.checks_for_unconfigured_procedures(newDf, typeSpreadsheet, con)
+    brasind = procedures_without_brasindice.procedures_without_brasindice(newDf)
 
-    
     dfFilter = df0.loc[(df0['valor'] != 0) & (df0['tiss'] != 'NAO POSSUI BRASINDICE'), ['tiss', 'valor']]
     dfFilter['vl_honorario'] = 0
     dfFilter['vl_operacional'] = 0
@@ -72,9 +68,9 @@ def insertFromTo(dfFilter, typeSpreadsheet, con=None):
     data = dfFilter.to_dict(orient='records')
     
     if typeSpreadsheet == 0:
-        insertFromToSQL = insertFromToMedSQL
+        insertFromToSQL = data_processor_queries.insert_from_to_medSQL
     elif typeSpreadsheet == 1:
-        insertFromToSQL = insertFromToMatSQL
+        insertFromToSQL = data_processor_queries.insert_from_to_matSQL
 
     try:
         cur = con.cursor()

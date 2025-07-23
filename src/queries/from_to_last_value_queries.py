@@ -1,4 +1,4 @@
-fromToLastValueMedSQL="""
+from_to_last_value_medSQL="""
     SELECT
         DP.CD_TISS,
         IB.CD_PRO_FAT,
@@ -29,7 +29,7 @@ fromToLastValueMedSQL="""
         IB.CD_TAB_FAT = 1
 """
 
-fromToLastValueMatSQL="""
+from_to_last_value_matSQL="""
     SELECT
         DP.CD_TUSS,
         I.CD_PRO_FAT,

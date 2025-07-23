@@ -3,7 +3,7 @@ from openpyxl import load_workbook
 import datetime
 import pandas as pd
 
-def proceduresWithoutBrasindice(df):
+def procedures_without_brasindice(df):
     df = df.loc[df['tiss'] == 'NAO POSSUI BRASINDICE', ['tiss', 'codigo_brasindice', 'valor', 'descricao']]
 
     data = df.to_dict(orient='records')

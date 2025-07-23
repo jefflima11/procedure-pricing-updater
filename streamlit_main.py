@@ -1,4 +1,5 @@
-from src.services import data_processor
+from src.services import data_processor, update
+from src.queries import update_queries
 from src.utils import states
 from src.db import connection
 import streamlit as st
@@ -32,8 +33,10 @@ def login_page():
 
 def insert_page(con=None):
     state = data_processor.check_from_to_table(con)
+    out_path = "src/resources/out"
+    files = [f for f in os.listdir(out_path) if os.path.isfile(os.path.join(out_path, f))]
 
-    if state is not None:
+    if state != 3:
         st.warning("Existem logs anteriores.", icon="⚠️")
         bt1, bt2, bt3 = st.columns([4.28,4.28,1])
         if bt1.button("Visualizar logs", use_container_width=True):
@@ -72,8 +75,8 @@ def insert_page(con=None):
             cleaner(con)
             st.rerun()
 
-        if bt3.button("Exportar logs", use_container_width=True):
-            out_path = "src/resources/out"
+        if bt3.button("Exportar logs", use_container_width=True, disabled=files == [], help="Não há logs disponíveis para exportação."):
+            
 
             # Garante que a pasta existe
             if not os.path.exists(out_path):
@@ -81,7 +84,7 @@ def insert_page(con=None):
             else:
                 st.subheader("📁 Arquivos disponíveis para download")
 
-                files = [f for f in os.listdir(out_path) if os.path.isfile(os.path.join(out_path, f))]
+                
 
                 if not files:
                     st.info("Nenhum arquivo encontrado.")
@@ -129,7 +132,52 @@ def insert_page(con=None):
                 
 
             st.button("Processar", on_click=process_data, args=(df, con, state, uploaded_file))    
-      
+
+def update_page(con=None):
+    if st.button("Atualizar pagina"):
+        st.rerun()
+
+    state = data_processor.check_from_to_table(con)
+    
+    exists_update = update.exists_update_with_current_vigency(con)
+    # st.write(exists_update)
+    if exists_update == []:
+        
+        st.success("Não existem atualizações com vigência atual.", icon="✅")
+        st.selectbox("Selecione o tipo de atualização:", ["Tabela 01 (Brasindice)", "Tabela 50 (Simpro)"], index=None, key="selected_option",)
+        if st.button("Confirmar"):
+            selected_option = st.session_state.selected_option
+            if selected_option == "Tabela 01 (Brasindice)":
+                typeSpreadsheet = 0
+            elif selected_option == "Tabela 50 (Simpro)":
+                typeSpreadsheet = 1
+            else:
+                st.error("Seleção inválida.")
+
+            if typeSpreadsheet == 0 and state == 1:
+                st.write("Atualizando tabela de procedimentos (Brasindice)...")
+                exect = update.execute_update(con, typeSpreadsheet)
+                st.write(exect)
+            elif typeSpreadsheet == 1 and state == 2:
+                st.write("Atualizando tabela de materiais (Simpro)...")
+                exect = update.execute_update(con, typeSpreadsheet)
+                st.write(exect)
+            else:
+                st.error("Dados de de-para não condinzentes com o tipo de atualização selecionado.")
+        # st.rerun()
+            
+    else:
+        st.warning("Existem atualizações.", icon="⚠️")
+        st.write("Deseja limpar as atualizações com vigência atual?")
+        if st.button("Sim"):
+            try:
+                cur = con.cursor()
+                cur.execute(update_queries.clean_updateSQL)
+                con.commit()
+                st.success("Atualizações limpas com sucesso!")
+            except Exception as e:
+                st.error(f"Erro ao limpar atualizações: {e}")
+            
 def menu_page():
     def title(text):
         st.title(text)
@@ -157,7 +205,7 @@ def menu_page():
     st.sidebar.title(f" {st.session_state.user}")
     st.sidebar.write("---")
 
-    escolha = st.sidebar.selectbox("Processos:", ["Inserir", "Atualizar", "",], index=2)
+    escolha = st.sidebar.selectbox("Processos:", ["Inserir", "Atualizar"], index=None)
 
     if escolha == "Inserir":
         title("Inserir Dados")
@@ -165,12 +213,16 @@ def menu_page():
         insert_page(con)
     elif escolha == "Atualizar":
         title("Atualizar Dados")
-        st.write("Chamaria função de Atualização aqui.")
+        con = connection.get_connection(st.session_state.user, st.session_state.pw, st.session_state.dsn)
+        update_page(con)
     else:
         home_page()
 
     st.sidebar.write("---")
-    
+    # st.select_box("Selecione uma página:", ["Home", "Inserir Dados", "Atualizar Dados"], index=None, key="selected_page")
+    st.sidebar.write("Configurações:")
+
+
     if st.sidebar.button("Sair"):
         st.session_state.clear()
         st.rerun()
