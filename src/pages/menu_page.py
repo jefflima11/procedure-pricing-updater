@@ -8,10 +8,10 @@ def menu(con):
             menu_title=f" {st.session_state.user.upper()}",
             options=["Home", "Inserir", "Atualizar", "Visualizar", "Sair"],
             icons=["house", "plus", "pencil", "eye", "power"],
-            # default_index=1,
+            default_index=0,
             key="main_menu",
             orientation="vertical",
-            menu_icon="pencil"
+            menu_icon="person"
         )
 
     if selected == "Home":
