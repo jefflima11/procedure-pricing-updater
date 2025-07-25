@@ -5,26 +5,53 @@ import oracledb
 import numpy as np
 
 def viewer(con):
-    st.subheader("Ultimas atualizações")
-    from_date = st.date_input("De:" ,width=150, format="DD/MM/YYYY", max_value="today")
-    to_date = st.date_input("Até:", value='today', width=150, format="DD/MM/YYYY")
+    # st.subheader("Ultimas atualizações")
+    st.markdown("""
+        ## Ultimas atualizações
+        ---
 
-    new_from_date = from_date.strftime("%d/%m/%Y")
-    new_to_date = to_date.strftime("%d/%m/%Y")
-    st.write(new_from_date, new_to_date)
-    args = {
-        'from': new_from_date,
-        'to': new_to_date
-    }
+    """)
+    with st.form("form_date", border=False, width=800):
+        from_date, to_date, tables, submitted_col = st.columns([3,3,6,2])
+        with from_date:
+            new_from_date = st.date_input("De:" ,width=150, format="DD/MM/YYYY", max_value="today", value=None)
+        with to_date: 
+            new_to_date = st.date_input("Até:", value='today', width=150, format="DD/MM/YYYY")
+        with tables:
+            new_tables = st.radio("Tabelas:",['Unimed Medicamentos Própria', 'Unimed Materiais Própria'])
+            st.checkbox('Unimed Medicamentos Própria', key='tabela_medicamento')
+            st.checkbox('Unimed Materiais Própria', key='tabela_materiais')
+        with submitted_col:
+            submitted = st.form_submit_button("Pesquisar")
 
-    st.write(args)
-    try:
-        cur = con.cursor()
-        cur.execute(viewer_queries.viewer_last_update)
-        rows = cur.fetchall()
-        columns = [col[0] for col in cur.description]
-        df = pd.DataFrame(rows, columns=columns)
-        df = df[['VIGENCIA', 'TABELA', 'USUARIO']]
-        st.write(df)
-    except oracledb.Error as e:
-        st.error(e)
+    if submitted:
+
+        if st.session_state.tabela_medicamento == True and st.session_state.tabela_materiais == True:
+            tab_fat_condition = 'CD_TAB_FAT IN (1,50)'
+        elif st.session_state.tabela_medicamento == True: 
+            tab_fat_condition = "CD_TAB_FAT = 1"
+        elif st.session_state.tabela_materiais == True:
+            tab_fat_condition = "CD_TAB_FAT = 50"
+        else:
+            st.warning("Selecione ao menos uma tabela.")
+            st.stop()
+
+        query_final = viewer_queries.viewer_last_update.format(tab_fat_condition=tab_fat_condition)
+        dados = {
+            'date_from': new_from_date.strftime("%d/%m/%Y"),
+            'date_to': new_to_date.strftime("%d/%m/%Y")
+        }
+        # st.write(dados['tab_fat']) 
+
+        try:
+            cur = con.cursor()
+            cur.execute(query_final, dados)
+            rows = cur.fetchall()
+            columns = [col[0] for col in cur.description]
+            df = pd.DataFrame(rows, columns=columns)
+            df = df[['VIGENCIA', 'TABELA', 'USUARIO']]
+            st.write(df)
+        except oracledb.Error as e:
+            st.error(e)
+
+    
