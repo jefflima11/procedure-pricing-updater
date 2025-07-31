@@ -16,7 +16,6 @@ def exists_update_with_current_vigency(con):
 def execute_update(con, typeSpreadsheet):  
   # Verifica o tipo de atualização
   dfUpdate = from_to_last_value.updatedProcedures(typeSpreadsheet, con)
-  # return dfUpdate
   dfNewValue = dfUpdate.copy()
 
   dfNewValue = dfNewValue[['CD_PRO_FAT', 'NEW_VALUE']]
