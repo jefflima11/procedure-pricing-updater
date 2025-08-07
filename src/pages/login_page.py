@@ -1,5 +1,6 @@
-import streamlit as st
 from src.db import connection
+from src.utils import pre_config
+import streamlit as st
 
 def login():
     st.set_page_config(page_title="Login", layout="centered")
@@ -23,5 +24,10 @@ def login():
                         st.session_state.pw = pw
                         st.session_state.dsn = dsn
                         st.session_state.con = conn
+
+                        erro = pre_config.start(st.session_state.con)
+                        if erro:
+                            st.inf(erro)
+                            
                         st.rerun()
                     return conn

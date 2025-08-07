@@ -1,4 +1,5 @@
 from src.services import data_processor
+from src.services import cleanup_tasks
 from src.db import connection
 import oracledb
 import streamlit as st
@@ -31,22 +32,9 @@ def insert(con=None):
             viwew_logs(con)
             
         if bt2.button("Limpar logs", use_container_width=True):
-            def cleaner(con=None):
-                try:
-                    cur = con.cursor()
-                    cur.execute("DELETE FROM DBAHUMS.DE_PARA_HUMS")
-                    con.commit()
-                    msg = {
-                        'type': "S",
-                        'msg': "Logs de de-para limpos com sucesso!"
-                    }
-                except oracledb.Error as e:
-                    msg = {
-                        'type': "E",
-                        'msg': f"Erro ao limpar logs de de-para: {e}"
-                    }
-                return msg
-            cleaner(con)
+            
+            msg = cleanup_tasks.cleaner(con)
+            st.info(msg)
             st.rerun()
 
         if bt3.button("Exportar logs", use_container_width=True, disabled=files == [], help="Não há logs disponíveis para exportação."):

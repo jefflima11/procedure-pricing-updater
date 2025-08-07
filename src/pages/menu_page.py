@@ -1,9 +1,8 @@
 from streamlit_option_menu import option_menu
 from src.pages import insert_page, home_page, update_page, viewer_page
-from src.utils import pre_config
+
 import streamlit as st
 
-pre_config.start()
 
 def menu(con):
     with st.sidebar:
