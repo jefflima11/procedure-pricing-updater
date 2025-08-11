@@ -10,6 +10,6 @@ main.spec
 /src/resources/out/
 /src/resources/log/
 
+/src/json/string_connection.json
+
 !/src/resources/in/.gitkeep
-!/src/resources/out/.gitkeep
-!/src/resources/log/.gitkeep

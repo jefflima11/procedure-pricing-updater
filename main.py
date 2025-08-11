@@ -1,7 +1,9 @@
 from streamlit_option_menu import option_menu
+from src.utils import pre_config
 from src.pages import login_page, home_page, menu_page
 import streamlit as st
 
+pre_config.init()
 
 def main():
     st.set_page_config(page_title="Sistema de Atualização", layout="wide")

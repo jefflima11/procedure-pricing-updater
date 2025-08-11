@@ -13,7 +13,6 @@ def home():
 
             Bem-vindo ao **HospUpdate**, seu sistema de atualização centralizada de informações hospitalares.
 
-            Você está conectado como **`{st.session_state.user}`**.
 
             Este sistema permite:
 
