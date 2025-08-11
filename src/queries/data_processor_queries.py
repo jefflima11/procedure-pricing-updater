@@ -1,12 +1,18 @@
-cleanFromToSQL = """
+clean_from_toSQL = """
     DELETE FROM DBAHUMS.DE_PARA_HUMS
 """
 
-checkExistsFromToSQL = """
-    SELECT DISTINCT 0 FROM DBAHUMS.DE_PARA_HUMS            
+check_exists_from_toSQL = """
+    SELECT DISTINCT
+        case
+            when count(dt_vigencia) <> 0 and count(cd_tiss) <> 0 then 1
+            when count(dt_vigencia) <> 0 and count(cd_tuss) <> 0 then 2
+            else 3
+        end t
+    FROM DBAHUMS.DE_PARA_HUMS            
 """
 
-insertFromToMedSQL = """
+insert_from_to_medSQL = """
     insert into dbahums.de_para_hums(
         cd_tiss, 
         dt_vigencia, 
@@ -26,7 +32,7 @@ insertFromToMedSQL = """
     )
 """
 
-insertFromToMatSQL = """
+insert_from_to_matSQL = """
     insert into dbahums.de_para_hums(
         cd_tuss, 
         dt_vigencia, 
@@ -46,7 +52,7 @@ insertFromToMatSQL = """
     )
 """
 
-unregisteredProcedures = """
+unregistered_procedures = """
     SELECT DISTINCT
         DP.CD_TISS,
         IB.CD_PRO_FAT

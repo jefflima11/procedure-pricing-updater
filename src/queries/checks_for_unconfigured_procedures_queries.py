@@ -1,4 +1,4 @@
-cheksForUnconfiguredProceduresSQL = """"
+checks_for_unconfigured_proceduresSQL = """"
     SELECT DISTINCT
         DP.CD_TISS,
         IB.CD_PRO_FAT
@@ -8,7 +8,7 @@ cheksForUnconfiguredProceduresSQL = """"
     WHERE IB.CD_TISS IS NULL
 """
 
-proceduresUnconfiguredLogMedSQL = """
+procedures_unconfigured_log_medSQL = """
     SELECT DISTINCT
         TISS,
         CODIGO_BRASINDICE,
@@ -27,7 +27,7 @@ proceduresUnconfiguredLogMedSQL = """
 
 """                    
 
-proceduresUnconfiguredLogMatSQL = """
+procedures_unconfigured_log_matSQL = """
     SELECT DISTINCT
         TUSS,
         VALOR,
@@ -44,7 +44,7 @@ proceduresUnconfiguredLogMatSQL = """
                     ) F ON LP.TUSS = F.CD_TUSS
 """
 
-insertProceduresInLogMedSQL = """
+insert_procedures_in_log_medSQL = """
     INSERT INTO DBAHUMS.LOG_PROC_NAO_CONFIG_HUMS(
         TISS,
         CODIGO_BRASINDICE,
@@ -72,6 +72,6 @@ insertProceduresInLogMatSQL = """
     )
 """
 
-deleteProceduresInLogSQL = """
+delete_procedures_in_logSQL = """
     DELETE FROM DBAHUMS.LOG_PROC_NAO_CONFIG_HUMS
 """

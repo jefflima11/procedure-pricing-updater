@@ -1,42 +1,44 @@
-from src.db.connection import get_connection
-from src.queries.checks_for_unconfigured_procedures_queries import insertProceduresInLogMedSQL, proceduresUnconfiguredLogMedSQL, deleteProceduresInLogSQL, insertProceduresInLogMatSQL, proceduresUnconfiguredLogMatSQL
-import pandas as pd
+from src.queries import checks_for_unconfigured_procedures_queries
 from openpyxl import load_workbook
+import pandas as pd
 import oracledb
 import datetime
 
-def checksForUnconfiguredProcedures(df, typeSpreadsheet):
+def checks_for_unconfigured_procedures(df, typeSpreadsheet, con):
     if typeSpreadsheet == 0:
         df = df.loc[(df['valor'] != 0) & (df['tiss'] != 'NAO POSSUI BRASINDICE'), ['tiss', 'codigo_brasindice','valor', 'descricao']]
-        insertProceduresInLogSQL = insertProceduresInLogMedSQL
+        insertProceduresInLogSQL = checks_for_unconfigured_procedures_queries.insert_procedures_in_log_medSQL
 
     elif typeSpreadsheet == 1:
         df = df.loc[df['valor'] != 0, ['tuss','valor', 'descricao']]
-        insertProceduresInLogSQL = insertProceduresInLogMatSQL
+        insertProceduresInLogSQL = checks_for_unconfigured_procedures_queries.insert_procedures_in_log_matSQL
 
     data = df.to_dict(orient='records')
-
+    
     try:
-        con = get_connection()
         cur = con.cursor()
         cur.executemany(insertProceduresInLogSQL, data)
         con.commit()
+        msg = {
+            'type': 'S',
+            'msg': len(data)
+        }
     except oracledb.Error as e:
-        print('Erro ao executar insert:')
-        print(e)
-    finally:
-        cur.close()
-        con.close()
+        msg = {
+            'type': 'E',
+            'msg': f'Erro ao inserir procedimentos não configurados no log: {e}'
+        }
+    return msg
 
-def exportForUnconfiguredProcedures(typeSpreadsheet):
+def exportForUnconfiguredProcedures(typeSpreadsheet, con):
     now = datetime.datetime.now()
     now_formated = now.strftime("%d%m%Y")
 
     if typeSpreadsheet == 0:
-        proceduresUnconfiguredLogSQL = proceduresUnconfiguredLogMedSQL
+        procedures_unconfigured_logSQL = checks_for_unconfigured_procedures_queries.procedures_unconfigured_log_medSQL
         typeS = "medicamentos"
     elif typeSpreadsheet == 1:
-        proceduresUnconfiguredLogSQL = proceduresUnconfiguredLogMatSQL
+        procedures_unconfigured_logSQL = checks_for_unconfigured_procedures_queries.procedures_unconfigured_log_matSQL
         typeS = "materiais"
     path = f'./src/resources/out/relatório-{typeS}{now_formated}.xlsx'
     
@@ -45,18 +47,21 @@ def exportForUnconfiguredProcedures(typeSpreadsheet):
 
     # Verifica em consulta os procedimentos que não tem condiguração na M_BRASIND
     try:
-        con = get_connection()
         cur = con.cursor()
         cur.execute(proceduresUnconfiguredLogSQL)
         rows = cur.fetchall()
         columns = [col[0] for col in cur.description]
         df = pd.DataFrame(rows, columns=columns)
+        msg = {
+            'type': 'S',
+            'msg': len(df)
+        }
     except oracledb.Error as e:
-        print('Error ao realizar consulta a tabela LOG_PROC_NAO_CONFIG_HUMS')
-        print(e)
-    finally:
-        cur.close()
-        con.close()
+        msg = {
+            'type': 'E',
+            'msg': f'Erro ao realizar consulta de procedimentos não configurados: {e}'
+        }
+    return msg
 
     # Adiciona nova aba na planilha de pendencias sem sobrescrever as existentes
     with pd.ExcelWriter(path, engine='openpyxl', mode='a') as writer:
@@ -64,13 +69,12 @@ def exportForUnconfiguredProcedures(typeSpreadsheet):
     
     # Limpa a tabela de log de procedimentos
     try:
-        con = get_connection()
         cur = con.cursor()
-        cur.execute(deleteProceduresInLogSQL)
+        cur.execute(delete_procedures_in_logSQL)
         con.commit()
     except oracledb.Error as e:
-        print('Erro ao realizar limpeza da tabela LOG_PROC_NAO_CONFIG_HUMS:')
-        print(e)
-    finally:
-        cur.close()
-        con.close()
+        msg = {
+            'type': 'E',
+            'msg': f'Erro ao limpar tabela de log de procedimentos: {e}'
+        }
+    return msg

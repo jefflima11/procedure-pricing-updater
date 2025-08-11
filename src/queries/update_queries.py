@@ -1,4 +1,4 @@
-updateNewValuesSQL = """
+update_new_valuesSQL = """
     INSERT INTO DBAMV.VAL_PRO(
         CD_TAB_FAT,
         CD_PRO_FAT,
@@ -20,10 +20,10 @@ updateNewValuesSQL = """
     )
 """
 
-checkUpdateSQL = """
+check_updateSQL = """
     SELECT DISTINCT 0 FROM DBAMV.VAL_PRO WHERE DT_VIGENCIA = TO_DATE(SYSDATE,'DD/MM/YY')
 """
 
-cleanUpdateSQL = """
+clean_updateSQL = """
     DELETE FROM DBAMV.VAL_PRO WHERE DT_VIGENCIA = TO_DATE(SYSDATE,'DD/MM/YY')
 """

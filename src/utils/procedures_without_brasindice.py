@@ -3,7 +3,7 @@ from openpyxl import load_workbook
 import datetime
 import pandas as pd
 
-def proceduresWithoutBrasindice(df):
+def procedures_without_brasindice(df):
     df = df.loc[df['tiss'] == 'NAO POSSUI BRASINDICE', ['tiss', 'codigo_brasindice', 'valor', 'descricao']]
 
     data = df.to_dict(orient='records')
@@ -16,5 +16,13 @@ def proceduresWithoutBrasindice(df):
     try:
         with pd.ExcelWriter(path, engine='openpyxl', mode='a') as writer:
             df.to_excel(writer, sheet_name='Proced_sem_brasindice', index=False)
+        msg = {
+            'type': 'S',
+            'msg': len(df)
+        }
     except:
-        print('Erro na importação os procedimentos sem brasindice')
+        msg = {
+            'type': 'E',
+            'msg': 'Erro ao gerar relatório de procedimentos sem brasindice'
+        }
+    return msg

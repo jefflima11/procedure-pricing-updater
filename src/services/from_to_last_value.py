@@ -1,17 +1,13 @@
-from src.db.connection import get_connection
-from src.queries.from_to_last_value_queries import fromToLastValueMedSQL, fromToLastValueMatSQL
-from src.utils import messages
+from src.queries import from_to_last_value_queries
+from openpyxl import load_workbook
 import pandas as pd
-import msvcrt
 import os
 import oracledb
 import datetime
-from openpyxl import load_workbook
 
-def updatedProcedures(typeSpreadsheet=None):
+def updatedProcedures(typeSpreadsheet=None, con=None):
   def runQuery(query):
     try:
-      con = get_connection()
       cur = con.cursor()
       cur.execute(query)
       rows = cur.fetchall()
@@ -21,23 +17,18 @@ def updatedProcedures(typeSpreadsheet=None):
       return df
     except oracledb.Error as e:
       orint(f"Erro ao executar a consulta: {e}")
-    finally:
-      cur.close()
-      con.close()
-
+    
   if typeSpreadsheet == 0:
-    fromToLastValueSQL = fromToLastValueMedSQL
+    fromToLastValueSQL = from_to_last_value_queries.from_to_last_value_medSQL
     return runQuery(fromToLastValueSQL)
   elif typeSpreadsheet == 1:
-    fromToLastValueSQL = fromToLastValueMatSQL
+    fromToLastValueSQL = from_to_last_value_queries.from_to_last_value_matSQL
     return runQuery(fromToLastValueSQL)
   else:
-    messages.invalidOption()
-    return None
+    return 'Erro na definição do tipo de planilha!'
 
-
-def exportUpdatedProcedures(typeSpreadsheet):
-  df = updatedProcedures(typeSpreadsheet)
+def exportUpdatedProcedures(typeSpreadsheet, con):
+  df = updatedProcedures(typeSpreadsheet, con)
 
   if typeSpreadsheet == 0:
     typeS = "medicamentos"
@@ -46,7 +37,6 @@ def exportUpdatedProcedures(typeSpreadsheet):
 
   df['diff'] = df['NEW_VALUE'] - df['OLD_VALUE']
   df['percent'] = ((df['NEW_VALUE'] - df['OLD_VALUE']) / df['OLD_VALUE']) * 100
-  # print(df.head().dtypes)
   data = df.to_dict(orient='records')
 
   now = datetime.datetime.now()
@@ -57,5 +47,13 @@ def exportUpdatedProcedures(typeSpreadsheet):
   try:
     with pd.ExcelWriter(path, engine='openpyxl', mode='a') as writer:
       df.to_excel(writer, sheet_name='Proced_atualizados', index=False)
+      msg = {
+          'type': 'S',
+          'msg': f'Procedimentos atualizados exportados com sucesso para {path}'
+      }
   except:
-      print('Erro ao importar os procedimentos atualizados!')
+      msg = {
+          'type': 'E',
+          'msg': 'Erro ao importar os procedimentos atualizados!'
+      }
+  return msg

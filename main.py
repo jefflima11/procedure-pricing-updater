@@ -1,27 +1,16 @@
-from src.db.connection import get_connection, user
-from src.services.data_processor import executeInsert
-from src.services.update import executeUpdate
-from src.utils import messages
-import sys
-import os
-import msvcrt
+from streamlit_option_menu import option_menu
+from src.pages import login_page, home_page, menu_page
+import streamlit as st
 
 
-if get_connection():
-    while True:
-        messages.homeMenu(user)
-        selectOptions = msvcrt.getch().decode()
+def main():
+    st.set_page_config(page_title="Sistema de Atualização", layout="wide")
 
-        if selectOptions == '1':
-            messages.terminalCleaning()
-            executeInsert()
-            
-        elif selectOptions == '2':
-            messages.terminalCleaning()
-            executeUpdate()
+    if "user" not in st.session_state:
+        login_page.login()
+    else:
+        
+        menu_page.menu(st.session_state.con)
 
-        elif selectOptions == '0':
-            messages.terminalCleaning()
-            break
-        else:
-            messages.terminalCleaning()
+if __name__ == "__main__":
+    main()
