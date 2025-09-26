@@ -63,9 +63,7 @@ def materialsProcedures(df, con):
     zero = handling_of_zero_values.handlingOfZeroValues(newDf, typeSpreadsheet)
     unconf = checks_for_unconfigured_procedures.checks_for_unconfigured_procedures(newDf, typeSpreadsheet, con)
 
-    dfFilter = df0.loc[df0['valor'] != 0, ['tuss', 'valor']]
-    st.write(dfFilter)
-    st.stop()
+    dfFilter = df0.query("valor > 0.000")[['tuss', 'valor']]
     dfFilter['vl_honorario'] = 0
     dfFilter['vl_operacional'] = 0
 
