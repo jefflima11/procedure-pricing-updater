@@ -14,12 +14,23 @@ def insert(con=None):
     if state != 3:
         st.warning("Existem logs anteriores.", icon="⚠️")
         bt1, bt2, bt3 = st.columns([4.28,4.28,1])
+        
         if bt1.button("Visualizar logs", use_container_width=True):
             def viwew_logs(con=None):
                 try:
                     con = connection.get_connection(st.session_state.user, st.session_state.pw, st.session_state.dsn)
                     cur = con.cursor()
-                    cur.execute("SELECT CD_TISS TISS, CD_TUSS TUSS, DT_VIGENCIA VIGENCIA, VL_HONORARIO HONORARIO, VL_OPERACIONAL OPERACIONAL, VL_TOTAL TOTAL, NM_USUARIO USUARIO  FROM DBAHUMS.DE_PARA_HUMS")
+                    cur.execute("""
+                        SELECT 
+                            CD_TISS TISS, 
+                            CD_TUSS TUSS, 
+                            DT_VIGENCIA VIGENCIA, 
+                            VL_HONORARIO HONORARIO, 
+                            VL_OPERACIONAL OPERACIONAL, 
+                            VL_TOTAL TOTAL, 
+                            NM_USUARIO USUARIO  
+                        FROM 
+                            DBAHUMS.DE_PARA_HUMS""");
                     logs = cur.fetchall()
                     if logs:
                         df_logs = pd.DataFrame(logs, columns=[col[0] for col in cur.description])
@@ -38,15 +49,11 @@ def insert(con=None):
             st.rerun()
 
         if bt3.button("Exportar logs", use_container_width=True, disabled=files == [], help="Não há logs disponíveis para exportação."):
-            
-
             # Garante que a pasta existe
             if not os.path.exists(out_path):
                 st.warning("Pasta de saída não encontrada.")
             else:
                 st.subheader("📁 Arquivos disponíveis para download")
-
-                
 
                 if not files:
                     st.info("Nenhum arquivo encontrado.")

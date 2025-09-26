@@ -3,21 +3,29 @@ from openpyxl import load_workbook
 import pandas as pd
 import oracledb
 import datetime
+import streamlit as st  
 
 def checks_for_unconfigured_procedures(df, typeSpreadsheet, con):
     if typeSpreadsheet == 0:
         df = df.loc[(df['valor'] != 0) & (df['tiss'] != 'NAO POSSUI BRASINDICE'), ['tiss', 'codigo_brasindice','valor', 'descricao']]
         insertProceduresInLogSQL = checks_for_unconfigured_procedures_queries.insert_procedures_in_log_medSQL
-
     elif typeSpreadsheet == 1:
-        df = df.loc[df['valor'] != 0, ['tuss','valor', 'descricao']]
-        insertProceduresInLogSQL = checks_for_unconfigured_procedures_queries.insert_procedures_in_log_matSQL
-
-    data = df.to_dict(orient='records')
+        df = df.query("valor > 0.000")
+        insertProceduresInLogSQL = checks_for_unconfigured_procedures_queries.insertProceduresInLogMatSQL
     
+    data = df.to_dict(orient='records')
+
     try:
         cur = con.cursor()
-        cur.executemany(insertProceduresInLogSQL, data)
+        batch_size = 10000
+
+        total = 0
+
+        for i in range(0, len(data), batch_size):
+            chunk =data[i:i+batch_size]
+            cur.executemany(insertProceduresInLogSQL, chunk)
+            total += len(chunk)
+
         con.commit()
         msg = {
             'type': 'S',
@@ -29,6 +37,7 @@ def checks_for_unconfigured_procedures(df, typeSpreadsheet, con):
             'msg': f'Erro ao inserir procedimentos não configurados no log: {e}'
         }
     return msg
+
 
 def exportForUnconfiguredProcedures(typeSpreadsheet, con):
     now = datetime.datetime.now()
@@ -48,7 +57,7 @@ def exportForUnconfiguredProcedures(typeSpreadsheet, con):
     # Verifica em consulta os procedimentos que não tem condiguração na M_BRASIND
     try:
         cur = con.cursor()
-        cur.execute(proceduresUnconfiguredLogSQL)
+        cur.execute(procedures_unconfigured_logSQL)
         rows = cur.fetchall()
         columns = [col[0] for col in cur.description]
         df = pd.DataFrame(rows, columns=columns)
@@ -70,7 +79,7 @@ def exportForUnconfiguredProcedures(typeSpreadsheet, con):
     # Limpa a tabela de log de procedimentos
     try:
         cur = con.cursor()
-        cur.execute(delete_procedures_in_logSQL)
+        cur.execute(checks_for_unconfigured_procedures_queries.delete_procedures_in_logSQL)
         con.commit()
     except oracledb.Error as e:
         msg = {

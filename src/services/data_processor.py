@@ -5,7 +5,6 @@ import pandas as pd
 import oracledb
 import streamlit as st  
 
-
 def check_from_to_table(con=None):
     try:
         cur = con.cursor()
@@ -24,12 +23,16 @@ def check_from_to_table(con=None):
 def medicationsProcedures(df, con):
     typeSpreadsheet = 0
 
-    df0 = df.rename(columns={'Cod TISS Brasindice': 'tiss', 'Preço Máximo Intercâmbio Nacional': 'valor', 'Nome e Apresentação Comercial': 'descricao', 'Código': 'codigo_brasindice'})
+    df0 = df.rename(columns={
+        'Cod TISS Brasindice': 'tiss', 
+        'Preço Máximo Intercâmbio Nacional': 'valor', 
+        'Nome e Apresentação Comercial': 'descricao', 
+        'Código': 'codigo_brasindice'
+    })
     df0['valor'] = df0['valor'].astype(str).str.strip().str.replace(',','.', regex=False).astype(float)
     newDf = df0[['tiss','codigo_brasindice', 'valor','descricao']]
     df0 = df0[['tiss','valor']]
     df0['tiss'] = df0['tiss'].astype(str)
-
     
     zero = handling_of_zero_values.handlingOfZeroValues(newDf, typeSpreadsheet)
     unconf = checks_for_unconfigured_procedures.checks_for_unconfigured_procedures(newDf, typeSpreadsheet, con)
@@ -46,16 +49,23 @@ def medicationsProcedures(df, con):
 def materialsProcedures(df, con):
     typeSpreadsheet = 1
 
-    df0 = df.rename(columns={'Código': 'tuss', 'Valor Máximo Intercâmbio Nacional': 'valor', 'Descrição do Produto': 'descricao'})
+    df0 = df.rename(columns={
+        'Código': 'tuss', 
+        'Valor Máximo Intercâmbio Nacional': 'valor', 
+        'Descrição do Produto': 'descricao'
+    });
+
     df0['valor'] = df0['valor'].astype(str).str.strip().str.replace(',','.', regex=False).astype(float)
     newDf = df0[['tuss', 'descricao', 'valor']]
     df0 = df0[['tuss', 'valor']]
     df0['tuss'] = df0['tuss'].astype(str)
 
-    zero = handlingOfZeroValues(newDf, typeSpreadsheet)
-    unconf = checksForUnconfiguredProcedures(newDf, typeSpreadsheet, con)
+    zero = handling_of_zero_values.handlingOfZeroValues(newDf, typeSpreadsheet)
+    unconf = checks_for_unconfigured_procedures.checks_for_unconfigured_procedures(newDf, typeSpreadsheet, con)
 
     dfFilter = df0.loc[df0['valor'] != 0, ['tuss', 'valor']]
+    st.write(dfFilter)
+    st.stop()
     dfFilter['vl_honorario'] = 0
     dfFilter['vl_operacional'] = 0
 
@@ -74,7 +84,14 @@ def insertFromTo(dfFilter, typeSpreadsheet, con=None):
 
     try:
         cur = con.cursor()
-        cur.executemany(insertFromToSQL, data)
+        batch_size = 10000
+
+        total = 0
+        for i in range(0, len(data), batch_size):
+                chunk = data[i:i+batch_size]
+                cur.executemany(insertFromToSQL, chunk)
+                total += len(chunk)
+
         con.commit()
         msg = {
             'type': 'S',
@@ -87,4 +104,4 @@ def insertFromTo(dfFilter, typeSpreadsheet, con=None):
         }
     return msg
 
-    states.state_function(exportForUnconfiguredProcedures(typeSpreadsheet, con))
+    states.state_function(checks_for_unconfigured_procedures.exportForUnconfiguredProcedures(typeSpreadsheet, con))
