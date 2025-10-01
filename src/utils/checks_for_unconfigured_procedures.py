@@ -5,41 +5,7 @@ import oracledb
 import datetime
 import streamlit as st  
 
-def checks_for_unconfigured_procedures(df, typeSpreadsheet, con):
-    if typeSpreadsheet == 0:
-        df = df.loc[(df['valor'] != 0) & (df['tiss'] != 'NAO POSSUI BRASINDICE'), ['tiss', 'codigo_brasindice','valor', 'descricao']]
-        insertProceduresInLogSQL = checks_for_unconfigured_procedures_queries.insert_procedures_in_log_medSQL
-    elif typeSpreadsheet == 1:
-        df = df.query("valor > 0.000")
-        insertProceduresInLogSQL = checks_for_unconfigured_procedures_queries.insertProceduresInLogMatSQL
-    
-    data = df.to_dict(orient='records')
-
-    try:
-        cur = con.cursor()
-        batch_size = 10000
-
-        total = 0
-
-        for i in range(0, len(data), batch_size):
-            chunk =data[i:i+batch_size]
-            cur.executemany(insertProceduresInLogSQL, chunk)
-            total += len(chunk)
-
-        con.commit()
-        msg = {
-            'type': 'S',
-            'msg': len(data)
-        }
-    except oracledb.Error as e:
-        msg = {
-            'type': 'E',
-            'msg': f'Erro ao inserir procedimentos não configurados no log: {e}'
-        }
-    return msg
-
-
-def exportForUnconfiguredProcedures(typeSpreadsheet, con):
+def export_for_unconfigured_procedures(typeSpreadsheet, con):
     now = datetime.datetime.now()
     now_formated = now.strftime("%d%m%Y")
 
@@ -70,20 +36,62 @@ def exportForUnconfiguredProcedures(typeSpreadsheet, con):
             'type': 'E',
             'msg': f'Erro ao realizar consulta de procedimentos não configurados: {e}'
         }
-    return msg
 
-    # Adiciona nova aba na planilha de pendencias sem sobrescrever as existentes
-    with pd.ExcelWriter(path, engine='openpyxl', mode='a') as writer:
-        df.to_excel(writer, sheet_name="Proced_nao_config", index=False)
-    
+    # st.stop()
+    try:
+        # Adiciona nova aba na planilha de pendencias sem sobrescrever as existentes
+        with pd.ExcelWriter(path, engine='openpyxl', mode='a') as writer:
+            df.to_excel(writer, sheet_name="Proced_nao_config", index=False)
+    except Exception as e:
+        msg = {
+            'type': 'E',
+            'msg': f'Erro ao exportar procedimentos não configurados para planilha: {str(e)}'
+        }    
+
     # Limpa a tabela de log de procedimentos
     try:
         cur = con.cursor()
         cur.execute(checks_for_unconfigured_procedures_queries.delete_procedures_in_logSQL)
-        con.commit()
+        con.commit()   
     except oracledb.Error as e:
         msg = {
             'type': 'E',
             'msg': f'Erro ao limpar tabela de log de procedimentos: {e}'
         }
+
+
+
+def checks_for_unconfigured_procedures(df, typeSpreadsheet, con):
+    if typeSpreadsheet == 0:
+        df = df.loc[(df['valor'] != 0) & (df['tiss'] != 'NAO POSSUI BRASINDICE'), ['tiss', 'codigo_brasindice','valor', 'descricao']]
+        insert_procedures_in_logSQL = checks_for_unconfigured_procedures_queries.insert_procedures_in_log_medSQL
+    elif typeSpreadsheet == 1:
+        df = df.query("valor > 0.000")
+        insert_procedures_in_logSQL = checks_for_unconfigured_procedures_queries.insert_procedures_in_log_matSQL
+
+    data = df.to_dict(orient='records')
+
+    try:
+        cur = con.cursor()
+        batch_size = 10000
+
+        total = 0
+
+        for i in range(0, len(data), batch_size):
+            chunk = data[i:i+batch_size]
+            cur.executemany(insert_procedures_in_logSQL, chunk)
+            total += len(chunk)
+
+        con.commit()
+        msg = {
+            'type': 'S',
+            'msg': len(data)
+        }
+    except oracledb.Error as e:
+        msg = {
+            'type': 'E',
+            'msg': f'Erro ao inserir procedimentos não configurados no log: {e}'
+        }
+
     return msg
+

@@ -1,7 +1,7 @@
 import datetime
 import streamlit as st
 
-def handlingOfZeroValues(df, typeSpreadsheet):
+def handling_of_zero_values(df, typeSpreadsheet):
     now = datetime.datetime.now()
     now_formated = now.strftime("%d%m%Y")
 

@@ -58,7 +58,7 @@ insert_procedures_in_log_medSQL = """
     )
 """
 
-insertProceduresInLogMatSQL = """
+insert_procedures_in_log_matSQL = """
     INSERT INTO DBAHUMS.LOG_PROC_NAO_CONFIG_HUMS(
         TUSS,
         CODIGO_SIMPRO,
