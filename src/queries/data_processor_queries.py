@@ -2,7 +2,7 @@ clean_from_toSQL = """
     DELETE FROM DBAHUMS.DE_PARA_HUMS
 """
 
-check_exists_from_toSQL = """
+checkExistsFromTo = """
     SELECT DISTINCT
         case
             when count(dt_vigencia) <> 0 and count(cd_tiss) <> 0 then 1

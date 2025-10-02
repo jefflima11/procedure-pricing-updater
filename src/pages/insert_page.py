@@ -1,4 +1,5 @@
-from src.services import data_processor
+import src.models.fromToModel as ftm
+import src.services.data_processor as dp
 from src.services import cleanup_tasks
 from src.db import connection
 import oracledb
@@ -7,7 +8,7 @@ import pandas as pd
 import os
 
 def insert(con=None):
-    state = data_processor.check_from_to_table(con)
+    state = ftm.checkFromTo(con)
     out_path = "src/resources/out"
     files = [f for f in os.listdir(out_path) if os.path.isfile(os.path.join(out_path, f))]
 
@@ -90,10 +91,10 @@ def insert(con=None):
         
             def process_data(df, con, state, uploaded_file):       
                 if "med" in uploaded_file.name.lower():
-                    data_processor.medicationsProcedures(df, con)
+                    dp.medicationsProcedures(df, con)
 
                 elif "mat" in uploaded_file.name.lower():
-                    data_processor.materialsProcedures(df, con)
+                    dp.materialsProcedures(df, con)
 
                 else:
                     st.write("Tipo de planilha não identificado. Por favor, verifique o nome do arquivo.")

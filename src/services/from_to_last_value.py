@@ -1,11 +1,12 @@
 from src.queries import from_to_last_value_queries
 from openpyxl import load_workbook
 import pandas as pd
-import os
+import streamlit as st
 import oracledb
 import datetime
 
-def updatedProcedures(typeSpreadsheet=None, con=None):
+
+def updatedProcedures(typeSpreadsheet, con):
   def runQuery(query):
     try:
       cur = con.cursor()
@@ -16,18 +17,24 @@ def updatedProcedures(typeSpreadsheet=None, con=None):
       df = pd.DataFrame(rows, columns=columns)
       return df
     except oracledb.Error as e:
-      orint(f"Erro ao executar a consulta: {e}")
+      print(f"Erro ao executar a consulta: {e}")
     
   if typeSpreadsheet == 0:
     fromToLastValueSQL = from_to_last_value_queries.from_to_last_value_medSQL
-    return runQuery(fromToLastValueSQL)
   elif typeSpreadsheet == 1:
     fromToLastValueSQL = from_to_last_value_queries.from_to_last_value_matSQL
-    return runQuery(fromToLastValueSQL)
   else:
-    return 'Erro na definição do tipo de planilha!'
+    print('Erro na definição do tipo de planilha!')
+  
+  try:
+    runQuery(fromToLastValueSQL)
+  except Exception as e:
+    print(f"Erro ao executar a consulta: {e}")
 
 def exportUpdatedProcedures(typeSpreadsheet, con):
+  now = datetime.datetime.now()
+  now_formated = now.strftime('%d%m%Y')
+
   df = updatedProcedures(typeSpreadsheet, con)
 
   if typeSpreadsheet == 0:
@@ -35,25 +42,22 @@ def exportUpdatedProcedures(typeSpreadsheet, con):
   elif typeSpreadsheet == 1:
     typeS = "materiais"
 
+  print("Calculando diferenças e percentuais...")
+  st.write(df)
+  st.stop()
+
   df['diff'] = df['NEW_VALUE'] - df['OLD_VALUE']
   df['percent'] = ((df['NEW_VALUE'] - df['OLD_VALUE']) / df['OLD_VALUE']) * 100
   data = df.to_dict(orient='records')
 
-  now = datetime.datetime.now()
-  now_formated = now.strftime('%d%m%Y')
-
+  
   path = f'./src/resources/out/relatório-{typeS}{now_formated}.xlsx'
 
   try:
     with pd.ExcelWriter(path, engine='openpyxl', mode='a') as writer:
       df.to_excel(writer, sheet_name='Proced_atualizados', index=False)
-      msg = {
-          'type': 'S',
-          'msg': f'Procedimentos atualizados exportados com sucesso para {path}'
-      }
+
+      print(f'Procedimentos atualizados exportados com sucesso para {path}')
   except:
-      msg = {
-          'type': 'E',
-          'msg': 'Erro ao importar os procedimentos atualizados!'
-      }
-  return msg
+      print('Erro ao importar os procedimentos atualizados!')
+

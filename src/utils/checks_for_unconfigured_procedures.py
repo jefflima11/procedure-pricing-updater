@@ -1,4 +1,4 @@
-from src.queries import checks_for_unconfigured_procedures_queries
+import src.queries.checks_for_unconfigured_procedures_queries as checks_for_unconfigured_procedures_queries
 from openpyxl import load_workbook
 import pandas as pd
 import oracledb
@@ -16,7 +16,7 @@ def export_for_unconfigured_procedures(typeSpreadsheet, con):
         procedures_unconfigured_logSQL = checks_for_unconfigured_procedures_queries.procedures_unconfigured_log_matSQL
         typeS = "materiais"
     path = f'./src/resources/out/relatório-{typeS}{now_formated}.xlsx'
-    
+
     # Carrega o arquivo existente
     book = load_workbook(path)
 
@@ -27,39 +27,26 @@ def export_for_unconfigured_procedures(typeSpreadsheet, con):
         rows = cur.fetchall()
         columns = [col[0] for col in cur.description]
         df = pd.DataFrame(rows, columns=columns)
-        msg = {
-            'type': 'S',
-            'msg': len(df)
-        }
+        print(f'Consulta de procedimentos não configurados realizada com sucesso. Total: {len(df)}')
     except oracledb.Error as e:
-        msg = {
-            'type': 'E',
-            'msg': f'Erro ao realizar consulta de procedimentos não configurados: {e}'
-        }
+        print(f'Erro ao realizar consulta de procedimentos não configurados: {e}')
 
-    # st.stop()
+    # Adiciona nova aba na planilha de pendencias sem sobrescrever as existentes
     try:
-        # Adiciona nova aba na planilha de pendencias sem sobrescrever as existentes
         with pd.ExcelWriter(path, engine='openpyxl', mode='a') as writer:
             df.to_excel(writer, sheet_name="Proced_nao_config", index=False)
+        print(f'Procedimentos não configurados exportados para planilha com sucesso. Total: {len(df)}')
     except Exception as e:
-        msg = {
-            'type': 'E',
-            'msg': f'Erro ao exportar procedimentos não configurados para planilha: {str(e)}'
-        }    
+        print(f'Erro ao exportar procedimentos não configurados para planilha: {str(e)}') 
 
     # Limpa a tabela de log de procedimentos
     try:
         cur = con.cursor()
         cur.execute(checks_for_unconfigured_procedures_queries.delete_procedures_in_logSQL)
         con.commit()   
+        print('Tabela de log de procedimentos limpa com sucesso.')
     except oracledb.Error as e:
-        msg = {
-            'type': 'E',
-            'msg': f'Erro ao limpar tabela de log de procedimentos: {e}'
-        }
-
-
+        print(f'Erro ao limpar tabela de log de procedimentos: {e}')
 
 def checks_for_unconfigured_procedures(df, typeSpreadsheet, con):
     if typeSpreadsheet == 0:
@@ -83,15 +70,10 @@ def checks_for_unconfigured_procedures(df, typeSpreadsheet, con):
             total += len(chunk)
 
         con.commit()
-        msg = {
-            'type': 'S',
-            'msg': len(data)
-        }
-    except oracledb.Error as e:
-        msg = {
-            'type': 'E',
-            'msg': f'Erro ao inserir procedimentos não configurados no log: {e}'
-        }
 
-    return msg
+        print(f'{total} procedimentos não configurados inseridos no log.')
+    except oracledb.Error as e:
+        print(f'Erro ao inserir procedimentos não configurados no log: {e}')
+
+    export_for_unconfigured_procedures(typeSpreadsheet, con)
 

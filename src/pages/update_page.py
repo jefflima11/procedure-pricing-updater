@@ -1,5 +1,6 @@
-from src.services import data_processor, update
+from src.services import update
 from src.queries import update_queries
+import src.models.fromToModel as ftm
 import streamlit as st
 import time
 
@@ -11,7 +12,7 @@ def updater(con):
         st.info("Não existe atualização realizada hoje.")
 
     st.title("Atualização de Tabelas")
-    state = data_processor.check_from_to_table(con)
+    state = ftm.checkFromTo(con)
 
     with st.form("form_update"):
         select_table, bt_updated_pg, bt_confirm = st.columns([2,2,2], vertical_alignment="bottom")
