@@ -25,9 +25,9 @@ def updatedProcedures(typeSpreadsheet, con):
     fromToLastValueSQL = from_to_last_value_queries.from_to_last_value_matSQL
   else:
     print('Erro na definição do tipo de planilha!')
-  
+
   try:
-    runQuery(fromToLastValueSQL)
+    return runQuery(fromToLastValueSQL)
   except Exception as e:
     print(f"Erro ao executar a consulta: {e}")
 
@@ -43,9 +43,7 @@ def exportUpdatedProcedures(typeSpreadsheet, con):
     typeS = "materiais"
 
   print("Calculando diferenças e percentuais...")
-  st.write(df)
-  st.stop()
-
+  
   df['diff'] = df['NEW_VALUE'] - df['OLD_VALUE']
   df['percent'] = ((df['NEW_VALUE'] - df['OLD_VALUE']) / df['OLD_VALUE']) * 100
   data = df.to_dict(orient='records')

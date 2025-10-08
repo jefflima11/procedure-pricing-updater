@@ -91,7 +91,6 @@ def materialsProcedures(df, con):
             st.error(f"Erro ao separar procedimentos sem valor: {e}")
 
         try:
-            st.write("Inserindo dados na tabela de de-para...")
             time.sleep(2)
             ftm.insertFromTo(dfFilter, typeSpreadsheet, con)
         except Exception as e:
@@ -110,6 +109,6 @@ def materialsProcedures(df, con):
             ftlv.exportUpdatedProcedures(typeSpreadsheet, con)
         except Exception as e:
             st.error(f"Erro ao exportar informações: {e}")
-        st.stop()
+
         
         status.update(label="Processamento concluído!", state="complete", expanded=False)
