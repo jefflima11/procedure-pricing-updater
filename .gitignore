@@ -13,3 +13,5 @@ main.spec
 !/src/resources/in/.gitkeep
 !/src/resources/out/.gitkeep
 !/src/resources/log/.gitkeep
+
+node_modules/
