@@ -46,6 +46,7 @@ router.post('/', upload.single('file'), (req, res) => {
         fs.writeFileSync(tempFilePath, JSON.stringify(data, null, 2));
 
         console.log('Dados processados e armazenados temporariamente');
+        
         res.status(200).send({
             message: 'Arquivo carregado e processado com sucesso!',
             fileName: req.file.originalname

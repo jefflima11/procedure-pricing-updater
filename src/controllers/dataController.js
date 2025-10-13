@@ -5,7 +5,13 @@ import fs from 'fs';
 
 export async function processData(req, res, next) {
     try {
-        const rawData = fs.readFileSync('./src/temp/data.json');
+        let rawData
+
+        try {
+            rawData = fs.readFileSync('./src/temp/data.json', 'utf-8');
+        } catch {
+            return res.status(201).send('Não há dados a serem processados!');
+        }
         const data = JSON.parse(rawData);
 
         const processedData = await cleaningDatas(data);

@@ -29,14 +29,14 @@ export async function insertDePara(dataList) {
                 sql, 
                 { tuss: item.CodigoTuss, valor: item.Preco },
                 { autoCommit: true},
-                (err, result) => {
+                (err) => {
                     if (err) {
                         console.log('Erro ao inserir:', err);
                         return;
                     }
                 })
         })
-        return dataList;
+        return 'Dados inseridos na tabela DE PARA.';
     } finally {
         await conn.close();
     }
