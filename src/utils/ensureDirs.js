@@ -10,10 +10,8 @@ export async function ensureDirs() {
     for (const dir of dirs) {
         try {
             await fs.access(dir);
-            console.log(`Pasta já existe: ${dir}`);
         } catch {
             await fs.mkdir(dir, {recursive: true});
-            console.log(`Pasta criada: ${dir}`);
         }
     }
 
