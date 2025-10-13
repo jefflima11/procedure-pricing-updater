@@ -15,3 +15,5 @@ main.spec
 !/src/resources/log/.gitkeep
 
 node_modules/
+/src/temp/
+/src/uploads
