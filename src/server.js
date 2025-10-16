@@ -12,6 +12,6 @@ await ensureDirs();
 
 app.listen(PORT, async() => {
   await initDB();
-  await cleaning();
+  // await cleaning();
   console.log(`Server is running on http://localhost:${PORT}`);
 });

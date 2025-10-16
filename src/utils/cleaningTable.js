@@ -9,6 +9,7 @@ export async function cleaning() {
         `;
 
         await conn.execute(sql);
+        await conn.commit();
         console.log('Tabela temporaria limpa com sucesso!')
     } finally {
         await conn.close();
