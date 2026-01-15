@@ -4,6 +4,8 @@ import XLSX from 'xlsx';
 import fs from 'fs';
 import path from 'path';
 
+const router = Router();
+
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         cb(null, './src/uploads');
@@ -25,7 +27,6 @@ const upload = multer({
         }
 });
 
-const router = Router();
 
 router.post('/', upload.single('file'), (req, res) => {
     

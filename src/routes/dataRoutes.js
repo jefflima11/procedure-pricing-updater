@@ -1,7 +1,6 @@
 import { Router } from 'express';
 import { processData, unconfProced } from '../controllers/dataController.js';  
 
-
 const router = Router();
 
 router.get('/process-data', processData);
